@@ -83,11 +83,20 @@ package "Modelo Principal (Dominio)" as DOMAIN #0D1117 {
   }
 
   note right of Usuario
-    <b>Patrón Observer</b>
-    Actúa como observador.
-    Recibe notificaciones
-    cuando un Evento cambia
-    de estado.
+    <b>Patrón OBSERVER — Estructura Completa</b>
+    ┌──────────────────────────────────────┐
+    │ <b>Subject: Evento</b>                   │
+    │ - observadores: List&lt;Usuario&gt;       │
+    │ + agregarObservador(u)               │
+    │ + notificar(mensaje)                 │
+    ├──────────────────────────────────────┤
+    │ <b>Observer: Usuario</b>                 │
+    │ + actualizar(mensaje)                │
+    │ - notificacionesPendientes           │
+    │ + getNotificacionesPendientes()      │
+    └──────────────────────────────────────┘
+  <color:#8B949E>Evento notifica → Usuario recibe
+  cuando cambia estado del evento.</color>
   end note
 
   class MetodoPago #161B22 {
@@ -114,15 +123,10 @@ package "Modelo Principal (Dominio)" as DOMAIN #0D1117 {
     <color:#3FB950>+ pausar(): void
     <color:#3FB950>+ cancelar(): void
     <color:#3FB950>+ consultarDisponibilidad(): Map<Zona, Integer>
+    <color:#3FB950>+ getEstado(): EstadoEvento
   }
 
-  note right of Evento
-    <b>Patrón Observer</b>
-    Actúa como sujeto (Subject).
-    Notifica a los Usuarios
-    observadores cuando su
-    estado cambia.
-  end note
+  note right of Evento : <b>Observer</b> — Sujeto que notifica
 
   enum EstadoEvento #2D1B4E {
     <color:#D2A8FF>BORRADOR
@@ -165,10 +169,21 @@ package "Modelo Principal (Dominio)" as DOMAIN #0D1117 {
   }
 
   note right of Zona
-    <b>Patrón Strategy</b>
-    Delega el cálculo del
-    precio final a una
-    ITarifaStrategy.
+    <b>Patrón STRATEGY — Estructura Completa</b>
+    ┌──────────────────────────────────────┐
+    │ <b>Context: Zona</b>                     │
+    │ - estrategiaTarifa: ITarifaStrategy   │
+    │ + calcularPrecioFinal()               │
+    ├──────────────────────────────────────┤
+    │ <b>Strategy: ITarifaStrategy</b>          │
+    │ + calcular(zona): double              │
+    ├──────────────────────────────────────┤
+    │ <b>Concretas:</b>                        │
+    │ TarifaEstandar — precio base          │
+    │ TarifaPreventa  — -20% descuento      │
+    └──────────────────────────────────────┘
+  </color><color:#8B949E>Zona delega cálculo de precio
+  en la estrategia inyectada.</color>
   end note
 
   class Asiento #161B22 {
@@ -209,12 +224,25 @@ package "Modelo Principal (Dominio)" as DOMAIN #0D1117 {
   }
 
   note right of Compra
-    <b>Patrón State</b>
-    Delega su comportamiento
-    según el estado actual
-    (IEstadoCompra).
-    Los estados gestionan
-    las transiciones.
+    <b>Patrón STATE — Estructura Completa</b>
+    ┌──────────────────────────────────────────┐
+    │ <b>Context: Compra</b>                       │
+    │ - estadoActual: IEstadoCompra             │
+    │ + pagar()      → estado.siguiente()       │
+    │ + cancelar()   → estado.cancelar()        │
+    ├──────────────────────────────────────────┤
+    │ <b>State: IEstadoCompra</b>                  │
+    │ + siguiente(c)  : transición adelante     │
+    │ + cancelar(c)   : transición cancelación  │
+    ├──────────────────────────────────────────┤
+    │ <b>Concretos:</b>                             │
+    │ CompraCreada → CompraPagada → Confirmada  │
+    │ CompraIncidencia → Pagada o Cancelada     │
+    │ CompraCancelada / Reembolsada (terminal)  │
+    └──────────────────────────────────────────┘
+  </color><color:#8B949E>Compra delega comportamiento según
+  su estado actual. Cada estado concreto
+  define las transiciones permitidas.</color>
   end note
 
   abstract class Entrada as "Entrada\n(Component)" #161B22 {
@@ -230,15 +258,27 @@ package "Modelo Principal (Dominio)" as DOMAIN #0D1117 {
     <color:#3FB950>+ getIdEntrada(): String
     <color:#3FB950>+ getZona(): Zona
     <color:#3FB950>+ getAsiento(): Asiento
+    <color:#3FB950>+ setAsiento(a: Asiento): void
   }
 
   note right of Entrada
-    <b>Patrón Decorator</b>
-    Componente base.
-    ServicioDecorator lo
-    envuelve para agregar
-    servicios adicionales
-    de forma dinámica.
+    <b>Patrón DECORATOR — Estructura Completa</b>
+    ┌──────────────────────────────────────────┐
+    │ <b>Component: Entrada</b>                    │
+    │ {abstract} + getPrecioFinal(): double     │
+    ├──────────────────────────────────────────┤
+    │ <b>Decorator: ServicioDecorator</b>          │
+    │ - entradaDecorada: Entrada                │
+    │ + getCostoAdicional(): double             │
+    ├──────────────────────────────────────────┤
+    │ <b>Concretos (c/u suma su costo):</b>        │
+    │ AccesoVip (+$50K)  SeguroCancel (+$15K)  │
+    │ Merchandising (+$25K)  Parquead (+$20K)  │
+    │ AccesoPreferencial (+$35K)                │
+    └──────────────────────────────────────────┘
+  </color><color:#8B949E>Múltiples decoradores se apilan
+  sobre EntradaBase para agregar
+  servicios sin modificar la clase.</color>
   end note
 
   class EntradaBase #161B22 {
@@ -314,11 +354,18 @@ package "Patrones Creacionales" as CREATIONAL #0D1117 {
   }
 
   note right of EventoBuilder
-    <b>Patrón Builder</b>
-    Construye objetos Evento
-    paso a paso, permitiendo
-    crear instancias con
-    diferentes configuraciones.
+    <b>Patrón BUILDER — Estructura</b>
+    ┌────────────────────────────────┐
+    │ <b>Director: Cliente</b>           │
+    │ llama a conX()...build()       │
+    ├────────────────────────────────┤
+    │ <b>Builder: EventoBuilder</b>      │
+    │ + conId() / conNombre() / ...  │
+    │ + build(): Evento              │
+    ├────────────────────────────────┤
+    │ <b>Producto: Evento</b>            │
+    │ construido paso a paso         │
+    └────────────────────────────────┘
   end note
 
   interface IEntradaFactory #0D2F53 {
@@ -326,11 +373,17 @@ package "Patrones Creacionales" as CREATIONAL #0D1117 {
   }
 
   note right of IEntradaFactory
-    <b>Patrón Factory Method</b>
-    Define la interfaz para
-    crear Entradas.
-    Las subclases deciden
-    qué tipo concreto instanciar.
+    <b>Patrón FACTORY METHOD — Estructura</b>
+    ┌────────────────────────────────┐
+    │ <b>Creator: IEntradaFactory</b>    │
+    │ + crearEntrada(z, a): Entrada  │
+    ├────────────────────────────────┤
+    │ <b>Concrete: EntradaNumeradaFactory</b>│
+    │ genera IDs con AtomicLong      │
+    ├────────────────────────────────┤
+    │ <b>Producto: Entrada</b>           │
+    │ creado por la fábrica          │
+    └────────────────────────────────┘
   end note
 
   class EntradaNumeradaFactory #1F2937 {
@@ -353,14 +406,7 @@ package "Patrones Estructurales" as STRUCTURAL #0D1117 {
     <color:#3FB950>+ getPrecioFinal(): double
   }
 
-  note right of ServicioDecorator
-    <b>Patrón Decorator</b>
-    Envuelve una Entrada
-    para agregar servicios
-    sin modificar la clase base.
-    Pueden apilarse múltiples
-    decoradores.
-  end note
+  note right of ServicioDecorator : <b>Decorator</b> — Envuelve Entrada
 
   class AccesoVipDecorator #1F2937 {
     <color:#3FB950>+ getCostoAdicional(): double
@@ -387,12 +433,18 @@ package "Patrones Estructurales" as STRUCTURAL #0D1117 {
   }
 
   note right of IPagoAdapter
-    <b>Patrón Adapter</b>
-    Adapta diferentes sistemas
-    de pago a una interfaz
-    común. Permite cambiar
-    el método de pago sin
-    modificar el flujo de compra.
+    <b>Patrón ADAPTER — Estructura</b>
+    ┌────────────────────────────────┐
+    │ <b>Target: IPagoAdapter</b>        │
+    │ + procesarPago(monto): boolean │
+    ├────────────────────────────────┤
+    │ <b>Adaptees:</b>                   │
+    │ PayPal / TarjetaCredito        │
+    ├────────────────────────────────┤
+    │ <b>Client: EventDetailController</b>│
+    │ usa IPagoAdapter sin conocer   │
+    │ la implementación concreta     │
+    └────────────────────────────────┘
   end note
 
   class PayPalAdapter #1F2937 {
@@ -411,13 +463,21 @@ package "Patrones Estructurales" as STRUCTURAL #0D1117 {
   }
 
   note right of IReporteService
-    <b>Patrón Proxy</b>
-    IReporteService define
-    la interfaz común.
-    ReporteProxy controla el
-    acceso según permisos del
-    usuario antes de delegar
-    en ReporteReal.
+    <b>Patrón PROXY — Estructura</b>
+    ┌────────────────────────────────────────┐
+    │ <b>Subject: IReporteService</b>            │
+    │ + generarReporteCSV/PDF()              │
+    ├────────────────────────────────────────┤
+    │ <b>Proxy: ReporteProxy</b>                 │
+    │ - usuarioActual: Usuario                │
+    │ verifica permisos ANTES                │
+    │ de delegar en ReporteReal              │
+    ├────────────────────────────────────────┤
+    │ <b>RealSubject: ReporteReal</b>            │
+    │ ejecuta la generación real del reporte │
+    └────────────────────────────────────────┘
+  </color><color:#8B949E>Proxy controla acceso según rol
+  (admin puede todo, usuario solo su info)</color>
   end note
 
   class ReporteProxy #1F2937 {
@@ -496,14 +556,7 @@ package "Patrones de Comportamiento" as BEHAVIORAL #0D1117 {
     <color:#3FB950>+ calcular(zona: Zona): double
   }
 
-  note right of ITarifaStrategy
-    <b>Patrón Strategy</b>
-    Define una familia de
-    algoritmos de tarifa.
-    Zona delega en una
-    estrategia concreta
-    para calcular el precio.
-  end note
+  note right of ITarifaStrategy : <b>Strategy</b> — Interfaz de tarifa
 
   class TarifaEstandar #1F2937 {
     <color:#3FB950>+ calcular(zona: Zona): double
@@ -520,14 +573,7 @@ package "Patrones de Comportamiento" as BEHAVIORAL #0D1117 {
     <color:#3FB950>+ getNombreEstado(): String
   }
 
-  note right of IEstadoCompra
-    <b>Patrón State</b>
-    Cada estado concreto
-    implementa las transiciones
-    permitidas. Compra delega
-    el comportamiento según
-    su estado actual.
-  end note
+  note right of IEstadoCompra : <b>State</b> — Interfaz de estado
 
   class CompraCreada #1F2937 {
     <color:#3FB950>+ siguiente(c: Compra): void
@@ -595,15 +641,24 @@ package "Servicios y Fachada (Facade + SRP)" as SERVICE #0D1117 {
   }
 
   note right of GestionEventos
-    <b>Patrón Singleton + Facade</b>
-    Única instancia en toda la app.
-    Actúa como fachada que delega
-    a servicios especializados
-    (UserService, EventService, etc.)
-    <b>SRP:</b> No ejecuta lógica,
-    solo coordina servicios.
-    <b>DIP:</b> Depende de abstracciones
-    de servicio.
+    <b>Patrón SINGLETON + FACADE — Estructura</b>
+    ┌──────────────────────────────────────────┐
+    │ <b>Singleton: GestionEventos</b>             │
+    │ - instance: GestionEventos (estática)     │
+    │ + getInstance(): GestionEventos           │
+    ├──────────────────────────────────────────┤
+    │ <b>Facade — métodos que delegan a:</b>       │
+    │ UserService → gestionar usuarios          │
+    │ EventService → gestionar eventos          │
+    │ VenueService → gestionar recintos         │
+    │ PurchaseService → gestionar compras       │
+    │ IncidentService → gestionar incidencias   │
+    │ ReportService → generar reportes          │
+    └──────────────────────────────────────────┘
+  </color><color:#8B949E>Singleton: única instancia global.
+  Facade: simplifica la interacción
+  ocultando la complejidad de los servicios.
+  SOLID SRP/DIP: coordina, no ejecuta.</color>
   end note
 
   class UserService #1F2937 {
@@ -687,24 +742,24 @@ Zona "1" *-- "0..*" Asiento : <contiene> >
 Usuario "1" --> "0..*" MetodoPago : <métodos de pago>
 Usuario "1" --> "0..*" Compra : <historial de compras>
 
-' Evento - Observer
-Evento "1" --> "0..*" Usuario : <observadores>\n(Observer)
+' Evento - Observer (Subject → Observer)
+Evento "1" --> "0..*" Usuario : «OBSERVER»\nSubject → Observer\nnotifica >
 Evento "1" --> "1" Recinto : <se realiza en>
 Evento "1" --> "1" PoliticasEvento : <políticas>
 
 ' Estado Evento
 Evento "1" --> "1" EstadoEvento : <estado>
 
-' Zona - Strategy
-Zona "1" --> "1" ITarifaStrategy : <estrategia\nde precio>
+' Zona - Strategy (Context → Strategy)
+Zona "1" --> "1" ITarifaStrategy : «STRATEGY»\nContext → Strategy\ndelega cálculo
 
 ' Compra relaciones
 Compra "0..*" --> "1" Usuario : <pertenece a>
 Compra "0..*" --> "1" Evento : <asociada a>
 Compra "1" --> "0..*" Entrada : <items de compra>
 
-' Estado Compra
-Compra "1" --> "1" IEstadoCompra : <estado actual>
+' Estado Compra - State (Context → State)
+Compra "1" --> "1" IEstadoCompra : «STATE»\nContext → State\ndelegado en
 
 ' Entrada relaciones
 Entrada "0..*" --> "1" Zona : <ubicada en>
@@ -775,6 +830,7 @@ ReporteReal ..> PDFRenderer : renderiza >
 EventoBuilder ..> Evento : <<build>>
 
 ' ========== PATRÓN SINGLETON / FACADE ==========
+GestionEventos --> GestionEventos : «SINGLETON»\núnica instancia\n<getInstance()>
 GestionEventos --> UserService : delega >
 GestionEventos --> EventService : delega >
 GestionEventos --> VenueService : delega >
