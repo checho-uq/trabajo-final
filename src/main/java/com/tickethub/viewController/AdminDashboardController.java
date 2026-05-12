@@ -507,6 +507,35 @@ public class AdminDashboardController {
         else mostrarErrorLogica("Selecciona un asiento.");
     }
 
+    @FXML private void crearAsientoAction(ActionEvent event) {
+        Zona z = cmbAsientoZona.getValue();
+        if (z == null) { mostrarErrorLogica("Selecciona una zona primero."); return; }
+        TextInputDialog dialog = new TextInputDialog("A-" + z.getIdZona() + "-" + (z.getAsientos().size() + 1));
+        dialog.setTitle("Nuevo Asiento");
+        dialog.setHeaderText("Crear asiento en " + z.getNombre());
+        dialog.setContentText("ID del asiento:");
+        dialog.showAndWait().ifPresent(id -> {
+            if (id.isBlank()) return;
+            TextInputDialog filaDlg = new TextInputDialog(z.getNombre().substring(0, Math.min(2, z.getNombre().length())).toUpperCase());
+            filaDlg.setTitle("Fila");
+            filaDlg.setHeaderText("Fila del asiento");
+            filaDlg.setContentText("Fila:");
+            filaDlg.showAndWait().ifPresent(fila -> {
+                TextInputDialog numDlg = new TextInputDialog(String.valueOf(z.getAsientos().size() + 1));
+                numDlg.setTitle("Número");
+                numDlg.setHeaderText("Número del asiento");
+                numDlg.setContentText("Número:");
+                numDlg.showAndWait().ifPresent(num -> {
+                    Asiento a = new Asiento(id, fila.toUpperCase(), num);
+                    z.addAsiento(a);
+                    cargarAsientosAdmin(null);
+                    tblAsientos.refresh();
+                    mostrarInfoLogica("Asiento " + id + " creado.");
+                });
+            });
+        });
+    }
+
     // ============= MÉTRICAS =============
     @FXML private void cambiarEventoMetrica(ActionEvent event) {
         mostrarGraficaOcupacion(null);

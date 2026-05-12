@@ -33,13 +33,21 @@ public class EventDetailController {
     @FXML private CheckBox chkVIP, chkSeguro, chkMerch, chkParqueadero, chkAccesoPref;
     @FXML private VBox seatMapContainer;
 
+    public static Compra compraParaModificar = null;
+
     private Evento evento;
     private List<Asiento> asientosSeleccionados = new ArrayList<>();
     private Map<Asiento, Button> botonesAsiento = new HashMap<>();
+    private boolean esModificacion = false;
 
     @FXML
     public void initialize() {
-        evento = UserDashboardController.eventoSeleccionado;
+        if (compraParaModificar != null) {
+            evento = compraParaModificar.getEventoAsociado();
+            esModificacion = true;
+        } else {
+            evento = UserDashboardController.eventoSeleccionado;
+        }
         if (evento == null) return;
 
         lblNombre.setText(evento.getNombre());
@@ -296,27 +304,26 @@ public class EventDetailController {
 
     @FXML
     private void handleComprar(ActionEvent event) {
-        Zona z = cmbZonas.getValue();
         String metodo = cmbMetodoPago.getValue();
-        if (z == null || metodo == null) {
+        if (metodo == null) {
             lblMensaje.getStyleClass().setAll("label", "label-error");
-            lblMensaje.setText("Selecciona zona y método de pago.");
+            lblMensaje.setText("Selecciona un método de pago.");
             return;
         }
-
-        // If no seats selected from map, show error
         if (asientosSeleccionados.isEmpty()) {
             lblMensaje.getStyleClass().setAll("label", "label-error");
             lblMensaje.setText("Selecciona al menos un asiento en el mapa.");
             return;
         }
 
-        // Factory Method - create one Entrada per selected seat
+        Usuario user = LoginController.getUsuarioLogueado();
         EntradaNumeradaFactory factory = new EntradaNumeradaFactory();
         List<Entrada> entradas = new ArrayList<>();
+
         for (Asiento a : asientosSeleccionados) {
-            Entrada entrada = factory.crearEntrada(z, a);
-            // Decorator for each entry
+            Zona zonaAsiento = findZonaForSeat(a);
+            if (zonaAsiento == null) continue;
+            Entrada entrada = factory.crearEntrada(zonaAsiento, a);
             if (chkVIP.isSelected()) entrada = new AccesoVipDecorator(entrada);
             if (chkSeguro.isSelected()) entrada = new SeguroCancelacionDecorator(entrada);
             if (chkMerch.isSelected()) entrada = new MerchandisingDecorator(entrada);
@@ -325,36 +332,40 @@ public class EventDetailController {
             entradas.add(entrada);
         }
 
-        // Facade - single Compra with all entries
-        Usuario user = LoginController.getUsuarioLogueado();
-        Compra compra = GestionEventos.getInstance().crearCompra(user, evento, entradas);
+        Compra compra;
+        if (esModificacion && compraParaModificar != null) {
+            // RF-035: Modificar compra existente antes de pagar
+            compra = compraParaModificar;
+            GestionEventos.getInstance().modificarCompra(compra, entradas);
+        } else {
+            // RF-006: Crear nueva compra
+            compra = GestionEventos.getInstance().crearCompra(user, evento, entradas);
+        }
 
         // Adapter
         IPagoAdapter pago = metodo.contains("PayPal") ? new PayPalAdapter() : new TarjetaCreditoAdapter();
         boolean exito = pago.procesarPago(compra.getTotal());
 
         if (exito) {
-            compra.pagar(); // State: CREADA -> PAGADA
-            compra.pagar(); // State: PAGADA -> CONFIRMADA
-            // Mark all seats as sold
+            compra.pagar();
+            compra.pagar();
             for (Asiento a : asientosSeleccionados) {
                 a.cambiarEstado(EstadoAsiento.VENDIDO);
             }
 
-            // Generar recibo (RF-007)
             generarReciboTxt(compra);
 
             lblMensaje.getStyleClass().setAll("label", "label-success");
-            lblMensaje.setText("✅ ¡Compra exitosa! " + asientosSeleccionados.size() + " entrada(s) • Recibo: Recibo_" + compra.getIdCompra() + ".txt");
+            lblMensaje.setText("✅ Compra exitosa: " + asientosSeleccionados.size() + " entrada(s) • Recibo_" + compra.getIdCompra() + ".txt");
 
-            // Reset selection and reload map
+            compraParaModificar = null;
+            esModificacion = false;
             asientosSeleccionados.clear();
             botonesAsiento.clear();
             actualizarLabelSeleccion();
             cargarSeatMap();
             actualizarPrecio();
 
-            // Update aforo
             Map<Zona, Integer> disp = evento.consultarDisponibilidad();
             int totalDisp = disp.values().stream().mapToInt(Integer::intValue).sum();
             int totalCap = evento.getRecintoAsociado().getZonas().stream().mapToInt(Zona::getCapacidad).sum();

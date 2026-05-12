@@ -288,6 +288,7 @@
                                 <Label text="Zona" styleClass="form-label"/>
                                 <ComboBox fx:id="cmbAsientoZona" promptText="Seleccionar zona" prefWidth="220" onAction="#cargarAsientosAdmin"/>
                             </VBox>
+                            <Button text="➕ Nuevo Asiento" onAction="#crearAsientoAction" styleClass="btn-primary"/>
                             <Region HBox.hgrow="ALWAYS"/>
                             <Button text="✅ Habilitar" onAction="#habilitarAsiento" styleClass="btn-success"/>
                             <Button text="🚫 Bloquear" onAction="#bloquearAsiento" styleClass="btn-danger"/>

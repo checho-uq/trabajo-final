@@ -28,6 +28,9 @@
             <padding><Insets top="20" bottom="20" left="20" right="20"/></padding>
             <Label text="Métodos de Pago" styleClass="label-section"/>
             <ListView fx:id="lstMetodosPago" prefHeight="150"/>
+            <HBox spacing="8">
+                <Button text="🗑️ Eliminar seleccionado" onAction="#eliminarMetodoPago" styleClass="btn-danger"/>
+            </HBox>
             <Separator/>
             <Label text="Agregar Método de Pago" styleClass="label-muted"/>
             <HBox spacing="8">

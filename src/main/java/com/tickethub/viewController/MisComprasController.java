@@ -22,6 +22,7 @@ public class MisComprasController {
     @FXML private TableView<Compra> tblCompras;
     @FXML private TableColumn<Compra, String> colId, colEvento, colFecha, colTotal, colEstado, colEntradas;
     @FXML private ComboBox<String> cmbFiltroEstado;
+    @FXML private DatePicker dpFiltroInicio, dpFiltroFin;
     @FXML private Label lblDetalle;
 
     private List<Compra> compras;
@@ -65,22 +66,41 @@ public class MisComprasController {
         Filtros f = new Filtros();
         String est = cmbFiltroEstado.getValue();
         if (est != null && !est.isEmpty()) f.setEstado(est);
+        if (dpFiltroInicio.getValue() != null) f.setFechaInicio(dpFiltroInicio.getValue());
+        if (dpFiltroFin.getValue() != null) f.setFechaFin(dpFiltroFin.getValue());
         cargarCompras(f);
     }
 
     @FXML
     private void limpiarFiltro(ActionEvent event) {
         cmbFiltroEstado.setValue(null);
+        dpFiltroInicio.setValue(null);
+        dpFiltroFin.setValue(null);
         cargarCompras(new Filtros());
     }
 
     @FXML
     private void cancelarCompra(ActionEvent event) {
         Compra sel = tblCompras.getSelectionModel().getSelectedItem();
-        if (sel != null) {
-            GestionEventos.getInstance().cancelarCompra(sel);
-            cargarCompras(new Filtros());
+        if (sel == null) return;
+        GestionEventos.getInstance().cancelarCompra(sel);
+        cargarCompras(new Filtros());
+    }
+
+    @FXML
+    private void modificarCompra(ActionEvent event) {
+        Compra sel = tblCompras.getSelectionModel().getSelectedItem();
+        if (sel == null) return;
+        if (!"CREADA".equals(sel.getEstadoActual().getNombreEstado())) {
+            lblDetalle.setText("⚠️ Solo puedes modificar compras en estado CREADA.");
+            return;
         }
+        EventDetailController.compraParaModificar = sel;
+        try {
+            Parent root = FXMLLoader.load(getClass().getResource("/com/tickethub/views/EventDetail.fxml"));
+            Stage window = (Stage) ((Node) event.getSource()).getScene().getWindow();
+            window.setScene(new Scene(root, window.getWidth(), window.getHeight()));
+        } catch (Exception e) { e.printStackTrace(); }
     }
 
     @FXML

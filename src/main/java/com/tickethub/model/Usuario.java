@@ -62,6 +62,7 @@ public class Usuario {
     public void setEsAdmin(boolean admin) { this.esAdmin = admin; }
     public List<MetodoPago> getMetodosPago() { return metodosPago; }
     public void addMetodoPago(MetodoPago m) { this.metodosPago.add(m); }
+    public void removeMetodoPago(MetodoPago m) { this.metodosPago.remove(m); }
     public List<Compra> getHistorialCompras() { return historialCompras; }
 
     @Override

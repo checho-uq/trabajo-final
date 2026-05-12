@@ -46,6 +46,16 @@ public class PerfilController {
     }
 
     @FXML
+    private void eliminarMetodoPago(ActionEvent event) {
+        int idx = lstMetodosPago.getSelectionModel().getSelectedIndex();
+        if (idx < 0) return;
+        Usuario u = LoginController.getUsuarioLogueado();
+        MetodoPago m = u.getMetodosPago().get(idx);
+        u.removeMetodoPago(m);
+        cargarMetodosPago();
+    }
+
+    @FXML
     private void agregarMetodoPago(ActionEvent event) {
         String tipo = cmbTipoPago.getValue();
         String detalle = txtDetallePago.getText();

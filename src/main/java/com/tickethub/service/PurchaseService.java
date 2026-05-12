@@ -60,6 +60,10 @@ public class PurchaseService {
                 .filter(c -> c.getUsuarioAsociado().getIdUsuario().equals(u.getIdUsuario()))
                 .filter(c -> f.getEstado() == null || f.getEstado().isEmpty() ||
                         c.getEstadoActual().getNombreEstado().equalsIgnoreCase(f.getEstado()))
+                .filter(c -> f.getFechaInicio() == null ||
+                        !c.getFechaCreacion().toLocalDate().isBefore(f.getFechaInicio()))
+                .filter(c -> f.getFechaFin() == null ||
+                        !c.getFechaCreacion().toLocalDate().isAfter(f.getFechaFin()))
                 .collect(Collectors.toList());
     }
 
