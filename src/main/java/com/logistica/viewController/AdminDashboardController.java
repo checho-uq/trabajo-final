@@ -17,6 +17,7 @@ import javafx.scene.control.*;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
@@ -65,6 +66,8 @@ public class AdminDashboardController {
     @FXML private Label lblTotalCompras, lblTotalIngresos, lblTasaCancelacion, lblTotalEventos, lblTotalServicios;
     @FXML private ListView<String> lstIncidencias, lstTopEventos;
     @FXML private ComboBox<Evento> cmbMetricaEvento;
+    @FXML private DatePicker dpIncidenciaInicio, dpIncidenciaFin;
+    @FXML private TextField txtFiltroTipoIncidencia;
 
     private GestionEventos gestion = GestionEventos.getInstance();
 
@@ -519,6 +522,51 @@ public class AdminDashboardController {
         pie.getData().add(new PieChart.Data("Canceladas (" + canceladas + ")", Math.max(canceladas, 1)));
         pie.setAnimated(true);
         panelGraficas.getChildren().add(pie);
+    }
+
+    @FXML private void mostrarGraficaLinea(ActionEvent event) {
+        panelGraficas.getChildren().clear();
+        LineChart<String, Number> chart = new LineChart<>(new CategoryAxis(), new NumberAxis());
+        chart.setTitle("Tendencia de Ventas por Evento");
+        XYChart.Series<String, Number> series = new XYChart.Series<>();
+        series.setName("Ingresos ($)");
+        for (Evento ev : gestion.listarEventos()) {
+            double ventas = gestion.getCompras().stream()
+                    .filter(c -> c.getEventoAsociado().getIdEvento().equals(ev.getIdEvento()))
+                    .mapToDouble(Compra::getTotal).sum();
+            String label = ev.getNombre().length() > 15 ? ev.getNombre().substring(0, 15) + "…" : ev.getNombre();
+            series.getData().add(new XYChart.Data<>(label, ventas));
+        }
+        if (!series.getData().isEmpty()) chart.getData().add(series);
+        chart.setAnimated(true);
+        panelGraficas.getChildren().add(chart);
+    }
+
+    @FXML private void filtrarIncidencias(ActionEvent event) {
+        Filtros f = new Filtros();
+        if (dpIncidenciaInicio.getValue() != null) f.setFechaInicio(dpIncidenciaInicio.getValue());
+        if (dpIncidenciaFin.getValue() != null) f.setFechaFin(dpIncidenciaFin.getValue());
+        List<Incidencia> incidenciasFiltradas = gestion.consultarIncidencias(f);
+        if (txtFiltroTipoIncidencia.getText() != null && !txtFiltroTipoIncidencia.getText().isBlank()) {
+            String tipoFiltro = txtFiltroTipoIncidencia.getText().toLowerCase();
+            incidenciasFiltradas = incidenciasFiltradas.stream()
+                    .filter(i -> i.getTipo().toLowerCase().contains(tipoFiltro))
+                    .toList();
+        }
+        lstIncidencias.setItems(FXCollections.observableArrayList(
+                incidenciasFiltradas.stream()
+                        .map(i -> "[" + i.getTipo() + "] " + i.getDescripcion() + " (" + i.getFecha().format(DateTimeFormatter.ofPattern("dd/MM/yy")) + ")")
+                        .toList()));
+    }
+
+    @FXML private void limpiarFiltroIncidencias(ActionEvent event) {
+        dpIncidenciaInicio.setValue(null);
+        dpIncidenciaFin.setValue(null);
+        txtFiltroTipoIncidencia.clear();
+        lstIncidencias.setItems(FXCollections.observableArrayList(
+                gestion.getIncidencias().stream()
+                        .map(i -> "[" + i.getTipo() + "] " + i.getDescripcion())
+                        .toList()));
     }
 
     // ============= REPORTES =============

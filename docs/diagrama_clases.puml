@@ -1,0 +1,277 @@
+@startuml
+' BookIt - Diagrama de Clases
+' RF-044: Diagrama de clases con relaciones
+
+skinparam backgroundColor #FEFEFE
+skinparam class {
+  BorderColor #1a3a5c
+  BackgroundColor #E8F0FE
+  ArrowColor #1a3a5c
+}
+
+package "Modelo" {
+  class Usuario {
+    - idUsuario: String
+    - nombreCompleto: String
+    - email: String
+    - telefono: String
+    - password: String
+    - esAdmin: boolean
+    - metodosPago: List<MetodoPago>
+    - historialCompras: List<Compra>
+    + actualizar(mensaje: String)
+  }
+
+  class MetodoPago {
+    - tipo: String
+    - detalle: String
+  }
+
+  class Evento {
+    - idEvento: String
+    - nombre: String
+    - categoria: String
+    - descripcion: String
+    - ciudad: String
+    - fecha: LocalDateTime
+    - estado: EstadoEvento
+    - recintoAsociado: Recinto
+    - politicas: PoliticasEvento
+    - observadores: List<Usuario>
+    + agregarObservador(u: Usuario)
+    + notificar(mensaje: String)
+    + consultarDisponibilidad(): Map
+  }
+
+  enum EstadoEvento {
+    BORRADOR
+    PUBLICADO
+    PAUSADO
+    CANCELADO
+    FINALIZADO
+  }
+
+  class PoliticasEvento {
+    - politicaCancelacion: String
+    - politicaReembolso: String
+  }
+
+  class Recinto {
+    - idRecinto: String
+    - nombre: String
+    - direccion: String
+    - ciudad: String
+    - zonas: List<Zona>
+    + administrarZonas(z: Zona)
+  }
+
+  class Zona {
+    - idZona: String
+    - nombre: String
+    - capacidad: int
+    - precioBase: double
+    - estrategiaTarifa: ITarifaStrategy
+    - asientos: List<Asiento>
+    + consultarOcupacion(): double
+    + calcularPrecioFinal(): double
+  }
+
+  class Asiento {
+    - idAsiento: String
+    - fila: String
+    - numero: String
+    - estado: EstadoAsiento
+    + cambiarEstado(nuevo: EstadoAsiento)
+  }
+
+  enum EstadoAsiento {
+    DISPONIBLE
+    RESERVADO
+    VENDIDO
+    BLOQUEADO
+  }
+
+  class Compra {
+    - idCompra: String
+    - usuarioAsociado: Usuario
+    - eventoAsociado: Evento
+    - fechaCreacion: LocalDateTime
+    - total: double
+    - estadoActual: IEstadoCompra
+    - itemsCompra: List<Entrada>
+    + pagar()
+    + cancelar()
+    + calcularTotal()
+  }
+
+  abstract class Entrada {
+    # idEntrada: String
+    # zona: Zona
+    # asiento: Asiento
+    # estadoEntrada: EstadoEntrada
+    + {abstract} getPrecioFinal(): double
+    + generarComprobante()
+    + anular()
+  }
+
+  class EntradaBase {
+    - precioBase: double
+    + getPrecioFinal(): double
+  }
+
+  enum EstadoEntrada {
+    ACTIVA
+    USADA
+    ANULADA
+  }
+
+  class Incidencia {
+    - idIncidencia: String
+    - tipo: String
+    - descripcion: String
+    - fecha: LocalDateTime
+    - entidadAfectada: String
+    + registrar()
+  }
+
+  class Filtros {
+    - fecha: String
+    - ciudad: String
+    - categoria: String
+    - precioMax: double
+    - estado: String
+    - fechaInicio: LocalDate
+    - fechaFin: LocalDate
+  }
+}
+
+package "Patrones Creacionales" {
+  class EventoBuilder {
+    + conId(id: String): EventoBuilder
+    + conNombre(n: String): EventoBuilder
+    + build(): Evento
+  }
+
+  interface IEntradaFactory {
+    + crearEntrada(z: Zona, a: Asiento): Entrada
+  }
+
+  class EntradaNumeradaFactory {
+    + crearEntrada(z: Zona, a: Asiento): Entrada
+  }
+}
+
+package "Patrones Estructurales" {
+  abstract class ServicioDecorator {
+    # entradaDecorada: Entrada
+    + {abstract} getCostoAdicional(): double
+  }
+
+  class AccesoVipDecorator
+  class SeguroCancelacionDecorator
+  class MerchandisingDecorator
+  class ParqueaderoDecorator
+  class AccesoPreferencialDecorator
+
+  interface IPagoAdapter {
+    + procesarPago(monto: double): boolean
+  }
+
+  class PayPalAdapter
+  class TarjetaCreditoAdapter
+
+  interface IReporteService {
+    + generarReporteCSV(f: Filtros, path: String)
+    + generarReportePDF(f: Filtros, path: String)
+    + generarReporteInteligente(config: ReporteConfig, path: String)
+  }
+
+  class ReporteProxy {
+    - service: ReporteReal
+    - usuarioActual: Usuario
+  }
+
+  class ReporteReal
+}
+
+package "Patrones Comportamiento" {
+  interface ITarifaStrategy {
+    + calcular(zona: Zona): double
+  }
+
+  class TarifaEstandar
+  class TarifaPreventa
+
+  interface IEstadoCompra {
+    + siguiente(c: Compra)
+    + cancelar(c: Compra)
+    + getNombreEstado(): String
+  }
+
+  class CompraCreada
+  class CompraPagada
+  class CompraConfirmada
+  class CompraCancelada
+  class CompraReembolsada
+  class CompraIncidencia
+}
+
+' === RELACIONES ===
+
+' Composición: Recinto -> Zona -> Asiento
+Recinto *-- Zona : contiene
+Zona *-- Asiento : contiene
+
+' Asociaciones
+Usuario --> MetodoPago : tiene >
+Usuario --> Compra : historial >
+Evento --> Recinto : se realiza en >
+Evento --> PoliticasEvento : tiene >
+Evento --> Usuario : notifica a (Observer) >
+Compra --> Usuario : pertenece a >
+Compra --> Evento : asociada a >
+Compra --> Entrada : contiene >
+Entrada --> Zona : ubicada en >
+Entrada --> Asiento : asignada a >
+
+' Herencia Entrada
+Entrada <|-- EntradaBase
+Entrada <|-- ServicioDecorator
+
+' Herencia Decorator
+ServicioDecorator <|-- AccesoVipDecorator
+ServicioDecorator <|-- SeguroCancelacionDecorator
+ServicioDecorator <|-- MerchandisingDecorator
+ServicioDecorator <|-- ParqueaderoDecorator
+ServicioDecorator <|-- AccesoPreferencialDecorator
+
+' Strategy
+Zona --> ITarifaStrategy : usa >
+ITarifaStrategy <|.. TarifaEstandar
+ITarifaStrategy <|.. TarifaPreventa
+
+' State
+Compra --> IEstadoCompra : estado >
+IEstadoCompra <|.. CompraCreada
+IEstadoCompra <|.. CompraPagada
+IEstadoCompra <|.. CompraConfirmada
+IEstadoCompra <|.. CompraCancelada
+IEstadoCompra <|.. CompraReembolsada
+IEstadoCompra <|.. CompraIncidencia
+
+' Factory
+IEntradaFactory <|.. EntradaNumeradaFactory
+IEntradaFactory --> Entrada : crea >
+
+' Adapter
+IPagoAdapter <|.. PayPalAdapter
+IPagoAdapter <|.. TarjetaCreditoAdapter
+
+' Proxy
+IReporteService <|.. ReporteProxy
+IReporteService <|.. ReporteReal
+
+' Builder
+EventoBuilder --> Evento : construye >
+
+@enduml

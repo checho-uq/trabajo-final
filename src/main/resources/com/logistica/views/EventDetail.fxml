@@ -42,6 +42,8 @@
                         <CheckBox fx:id="chkVIP" text="Acceso VIP (+$50.000)"/>
                         <CheckBox fx:id="chkSeguro" text="Seguro Cancelación (+$15.000)"/>
                         <CheckBox fx:id="chkMerch" text="Merchandising (+$25.000)"/>
+                        <CheckBox fx:id="chkParqueadero" text="Parqueadero (+$20.000)"/>
+                        <CheckBox fx:id="chkAccesoPref" text="Acceso Preferencial (+$35.000)"/>
                         <Separator/>
                         <Label text="Método de Pago:" styleClass="label-muted"/>
                         <ComboBox fx:id="cmbMetodoPago" maxWidth="Infinity"/>

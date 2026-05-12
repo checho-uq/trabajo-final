@@ -221,6 +221,7 @@
                             <Button text="💰 Ingresos Servicios" onAction="#mostrarGraficaServicios" styleClass="btn-warn"/>
                             <Button text="🏆 Top Eventos" onAction="#mostrarGraficaTop" styleClass="btn-primary"/>
                             <Button text="❌ Tasa Cancelación" onAction="#mostrarGraficaCancelacion" styleClass="btn-danger"/>
+                            <Button text="📈 Línea Ventas" onAction="#mostrarGraficaLinea" styleClass="btn-primary"/>
                         </HBox>
                         <!-- Zona de gráficas intercambiables -->
                         <StackPane fx:id="panelGraficas" prefHeight="320" style="-fx-background-color: transparent;">
@@ -237,6 +238,13 @@
                             </VBox>
                             <VBox spacing="4" HBox.hgrow="ALWAYS">
                                 <Label text="📋 Incidencias Recientes" styleClass="label-section"/>
+                                <HBox spacing="4">
+                                    <DatePicker fx:id="dpIncidenciaInicio" promptText="Fecha inicio" prefWidth="130"/>
+                                    <DatePicker fx:id="dpIncidenciaFin" promptText="Fecha fin" prefWidth="130"/>
+                                    <TextField fx:id="txtFiltroTipoIncidencia" promptText="Tipo" prefWidth="120"/>
+                                    <Button text="Filtrar" onAction="#filtrarIncidencias" styleClass="btn-primary"/>
+                                    <Button text="Limpiar" onAction="#limpiarFiltroIncidencias" styleClass="btn-warn"/>
+                                </HBox>
                                 <ListView fx:id="lstIncidencias" prefHeight="120"/>
                             </VBox>
                         </HBox>

@@ -4,6 +4,10 @@ import com.logistica.model.*;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * SOLID - SRP: Única responsabilidad = gestionar eventos.
+ * SOLID - DIP: Recibe IncidentService por constructor (Inyección de Dependencias).
+ */
 public class EventService {
     private List<Evento> eventos;
     private IncidentService incidentService;
@@ -20,6 +24,8 @@ public class EventService {
                 .filter(e -> f.getCategoria() == null || f.getCategoria().isEmpty() || e.getCategoria().equalsIgnoreCase(f.getCategoria()))
                 .filter(e -> f.getPrecioMax() <= 0 || (e.getRecintoAsociado() != null &&
                         e.getRecintoAsociado().getZonas().stream().anyMatch(z -> z.getPrecioBase() <= f.getPrecioMax())))
+                .filter(e -> f.getFechaInicio() == null || !e.getFecha().toLocalDate().isBefore(f.getFechaInicio()))
+                .filter(e -> f.getFechaFin() == null || !e.getFecha().toLocalDate().isAfter(f.getFechaFin()))
                 .collect(Collectors.toList());
     }
 

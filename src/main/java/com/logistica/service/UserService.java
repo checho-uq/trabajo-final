@@ -5,6 +5,9 @@ import com.logistica.model.Usuario;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * SOLID - SRP: Única responsabilidad = gestionar usuarios (CRUD + autenticación).
+ */
 public class UserService {
     private List<Usuario> usuarios;
 

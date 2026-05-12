@@ -9,6 +9,9 @@ import java.util.*;
 /**
  * Patrón: Singleton + Facade
  * Clase central que actúa como fachada delegando la lógica a servicios especializados.
+ * 
+ * SOLID - SRP: No ejecuta lógica de negocio directamente, solo delega a servicios especializados.
+ * SOLID - DIP: Depende de servicios abstractos inyectados por constructor (Inyección de Dependencias).
  */
 public class GestionEventos {
     private static GestionEventos instance;

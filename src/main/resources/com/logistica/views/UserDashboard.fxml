@@ -22,6 +22,8 @@
                 <TextField fx:id="txtFiltroCiudad" promptText="Ciudad" prefWidth="140"/>
                 <TextField fx:id="txtFiltroCategoria" promptText="Categoría" prefWidth="140"/>
                 <TextField fx:id="txtFiltroPrecio" promptText="Precio máximo" prefWidth="130"/>
+                <DatePicker fx:id="dpFiltroFechaInicio" promptText="Fecha desde" prefWidth="130"/>
+                <DatePicker fx:id="dpFiltroFechaFin" promptText="Fecha hasta" prefWidth="130"/>
                 <Button text="🔍 Buscar" onAction="#filtrarEventos" styleClass="btn-primary"/>
                 <Button text="Limpiar" onAction="#limpiarFiltros" styleClass="btn-ghost"/>
             </HBox>

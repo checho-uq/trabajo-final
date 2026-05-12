@@ -6,6 +6,9 @@ import com.logistica.model.Asiento;
 
 /**
  * Patrón Decorator: Clase abstracta para servicios adicionales sobre Entrada.
+ * 
+ * SOLID - OCP: Nuevos servicios se añaden extendiendo ServicioDecorator sin modificar EntradaBase.
+ * SOLID - LSP: Cualquier ServicioDecorator puede sustituir a Entrada porque getPrecioFinal() siempre retorna double.
  */
 public abstract class ServicioDecorator extends Entrada {
     protected Entrada entradaDecorada;

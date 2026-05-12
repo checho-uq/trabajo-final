@@ -5,6 +5,10 @@ import com.logistica.model.strategy.TarifaEstandar;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * SOLID - DIP: Depende de ITarifaStrategy (abstracción), no de implementaciones concretas.
+ * SOLID - SRP: Responsabilidad única: modelar un sector del recinto con su precio y ocupación.
+ */
 public class Zona {
     private String idZona;
     private String nombre;

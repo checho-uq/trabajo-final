@@ -4,6 +4,10 @@ import com.logistica.model.*;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * SOLID - SRP: Única responsabilidad = gestionar compras (crear, modificar, cancelar, reembolsar).
+ * SOLID - DIP: Recibe IncidentService por constructor.
+ */
 public class PurchaseService {
     private List<Compra> compras;
     private IncidentService incidentService;

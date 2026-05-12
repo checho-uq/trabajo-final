@@ -10,9 +10,7 @@ import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -24,6 +22,7 @@ import java.util.List;
 public class UserDashboardController {
     @FXML private FlowPane flowEventos;
     @FXML private TextField txtFiltroCiudad, txtFiltroCategoria, txtFiltroPrecio;
+    @FXML private DatePicker dpFiltroFechaInicio, dpFiltroFechaFin;
 
     private GestionEventos gestion = GestionEventos.getInstance();
     public static Evento eventoSeleccionado;
@@ -41,6 +40,8 @@ public class UserDashboardController {
         if (txtFiltroPrecio != null && !txtFiltroPrecio.getText().isBlank()) {
             try { f.setPrecioMax(Double.parseDouble(txtFiltroPrecio.getText())); } catch (Exception ignored) {}
         }
+        if (dpFiltroFechaInicio != null && dpFiltroFechaInicio.getValue() != null) f.setFechaInicio(dpFiltroFechaInicio.getValue());
+        if (dpFiltroFechaFin != null && dpFiltroFechaFin.getValue() != null) f.setFechaFin(dpFiltroFechaFin.getValue());
         List<Evento> eventos = gestion.explorarEventos(f);
         flowEventos.getChildren().clear();
         for (Evento ev : eventos) {
@@ -53,6 +54,8 @@ public class UserDashboardController {
         txtFiltroCiudad.clear();
         txtFiltroCategoria.clear();
         txtFiltroPrecio.clear();
+        if (dpFiltroFechaInicio != null) dpFiltroFechaInicio.setValue(null);
+        if (dpFiltroFechaFin != null) dpFiltroFechaFin.setValue(null);
         filtrarEventos(null);
     }
 

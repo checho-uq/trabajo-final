@@ -29,7 +29,7 @@ public class EventDetailController {
     @FXML private Label lblAsientosSeleccionados, lblTarima;
     @FXML private ComboBox<Zona> cmbZonas;
     @FXML private ComboBox<String> cmbMetodoPago;
-    @FXML private CheckBox chkVIP, chkSeguro, chkMerch;
+    @FXML private CheckBox chkVIP, chkSeguro, chkMerch, chkParqueadero, chkAccesoPref;
     @FXML private VBox seatMapContainer;
 
     private Evento evento;
@@ -69,6 +69,8 @@ public class EventDetailController {
         chkVIP.setOnAction(e -> actualizarPrecio());
         chkSeguro.setOnAction(e -> actualizarPrecio());
         chkMerch.setOnAction(e -> actualizarPrecio());
+        chkParqueadero.setOnAction(e -> actualizarPrecio());
+        chkAccesoPref.setOnAction(e -> actualizarPrecio());
 
         actualizarLabelSeleccion();
     }
@@ -181,6 +183,8 @@ public class EventDetailController {
         if (chkVIP.isSelected()) extras += 50000;
         if (chkSeguro.isSelected()) extras += 15000;
         if (chkMerch.isSelected()) extras += 25000;
+        if (chkParqueadero.isSelected()) extras += 20000;
+        if (chkAccesoPref.isSelected()) extras += 35000;
         double total = (precioUnitario + extras) * cantidad;
         lblPrecio.setText("Total: $" + String.format("%,.0f", total) + (cantidad > 1 ? " (" + cantidad + "x)" : ""));
     }
@@ -211,6 +215,8 @@ public class EventDetailController {
             if (chkVIP.isSelected()) entrada = new AccesoVipDecorator(entrada);
             if (chkSeguro.isSelected()) entrada = new SeguroCancelacionDecorator(entrada);
             if (chkMerch.isSelected()) entrada = new MerchandisingDecorator(entrada);
+            if (chkParqueadero.isSelected()) entrada = new ParqueaderoDecorator(entrada);
+            if (chkAccesoPref.isSelected()) entrada = new AccesoPreferencialDecorator(entrada);
             entradas.add(entrada);
         }
 
