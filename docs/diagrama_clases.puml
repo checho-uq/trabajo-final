@@ -729,6 +729,94 @@ package "Servicios y Fachada (Facade + SRP)" as SERVICE #0D1117 {
 }
 
 ' ===================================================================
+'  ViewControllers (dependencia - usan la fachada, van debajo de SERVICE)
+' ===================================================================
+package "Controladores Vista (JavaFX)" as VIEW #0D1117 {
+  class LoginController #1F2937 {
+    <color:#3FB950>+ handleLogin(): void
+    <color:#3FB950>+ irARegistro(): void
+  }
+
+  class AdminDashboardController #1F2937 {
+    <color:#3FB950>+ CRUD Eventos/Usuarios/Compras
+    <color:#3FB950>+ CRUD Recintos/Zonas/Asientos
+    <color:#3FB950>+ Métricas y gráficas
+    <color:#3FB950>+ Reportes (Proxy)
+    <color:#3FB950>+ Incidencias y reasignación
+  }
+
+  class UserDashboardController #1F2937 {
+    <color:#3FB950>+ explorar eventos con filtros
+    <color:#3FB950>+ ver detalle de evento
+  }
+
+  class EventDetailController #1F2937 {
+    <color:#3FB950>+ cargar mapa de asientos
+    <color:#3FB950>+ comprar con decoradores
+    <color:#3FB950>+ generar recibo TXT
+  }
+
+  class MisComprasController #1F2937 {
+    <color:#3FB950>+ ver historial de compras
+    <color:#3FB950>+ cancelar compra
+    <color:#3FB950>+ descargar CSV/PDF (Proxy)
+  }
+
+  class PerfilController #1F2937 {
+    <color:#3FB950>+ gestionar perfil y métodos de pago
+  }
+
+  class RegistroController #1F2937 {
+    <color:#3FB950>+ registrar nuevo usuario
+  }
+}
+
+' ===================================================================
+'  RELACIONES OCULTAS (layout hints verticales — reducen cruces)
+' ===================================================================
+' Fuerzan un layout de arriba a abajo sin diagonales:
+'   [PATRONES] → DOMAIN → SERVICE → VIEW
+' Las flechas ocultas indican dirección: -down- = lo de arriba apunta a lo de abajo
+
+' === TOP ROW: Patrones CREACIONALES (izquierda) ===
+EventoBuilder -[hidden]down- Evento
+IEntradaFactory -[hidden]down- Entrada
+
+' === TOP ROW: Patrones COMPORTAMIENTO (centro) ===
+ITarifaStrategy -[hidden]down- Zona
+IEstadoCompra -[hidden]down- Compra
+TarifaEstandar -[hidden]down- Zona
+TarifaPreventa -[hidden]down- Zona
+
+' === TOP ROW: Patrones ESTRUCTURALES (derecha) ===
+ServicioDecorator -[hidden]down- Entrada
+IPagoAdapter -[hidden]down- Compra
+IReporteService -[hidden]down- GestionEventos
+
+' === MIDDLE ROW: DOMAIN → SERVICE ===
+Evento -[hidden]down- GestionEventos
+Usuario -[hidden]down- UserService
+Recinto -[hidden]down- VenueService
+Compra -[hidden]down- PurchaseService
+Incidencia -[hidden]down- IncidentService
+
+' === BOTTOM ROW: SERVICE → VIEW ===
+GestionEventos -[hidden]down- AdminDashboardController
+GestionEventos -[hidden]down- UserDashboardController
+
+' === TOP ROW horizontal (CREATIONAL → BEHAVIORAL → STRUCTURAL) ===
+EventoBuilder -[hidden]right- ITarifaStrategy
+ITarifaStrategy -[hidden]right- ServicioDecorator
+
+' ViewControllers usan la fachada (abajo)
+LoginController ..> GestionEventos : usa >
+UserDashboardController ..> GestionEventos : usa >
+AdminDashboardController ..> GestionEventos : usa >
+EventDetailController ..> GestionEventos : usa >
+MisComprasController ..> GestionEventos : usa >
+PerfilController ..> GestionEventos : usa >
+
+' ===================================================================
 '  RELACIONES CON MULTIPLICIDAD Y ROLES
 ' ===================================================================
 
@@ -848,54 +936,5 @@ PurchaseService --> IncidentService : notifica >
 IncidentService --> Incidencia : gestiona >
 ReportService --> Compra : consulta >
 UserService --> Usuario : gestiona >
-
-' ViewControllers (dependencia - no son modelo pero usan la fachada)
-package "Controladores Vista (JavaFX)" as VIEW #0D1117 {
-  class LoginController #1F2937 {
-    <color:#3FB950>+ handleLogin(): void
-    <color:#3FB950>+ irARegistro(): void
-  }
-
-  class AdminDashboardController #1F2937 {
-    <color:#3FB950>+ CRUD Eventos/Usuarios/Compras
-    <color:#3FB950>+ CRUD Recintos/Zonas/Asientos
-    <color:#3FB950>+ Métricas y gráficas
-    <color:#3FB950>+ Reportes (Proxy)
-    <color:#3FB950>+ Incidencias y reasignación
-  }
-
-  class UserDashboardController #1F2937 {
-    <color:#3FB950>+ explorar eventos con filtros
-    <color:#3FB950>+ ver detalle de evento
-  }
-
-  class EventDetailController #1F2937 {
-    <color:#3FB950>+ cargar mapa de asientos
-    <color:#3FB950>+ comprar con decoradores
-    <color:#3FB950>+ generar recibo TXT
-  }
-
-  class MisComprasController #1F2937 {
-    <color:#3FB950>+ ver historial de compras
-    <color:#3FB950>+ cancelar compra
-    <color:#3FB950>+ descargar CSV/PDF (Proxy)
-  }
-
-  class PerfilController #1F2937 {
-    <color:#3FB950>+ gestionar perfil y métodos de pago
-  }
-
-  class RegistroController #1F2937 {
-    <color:#3FB950>+ registrar nuevo usuario
-  }
-}
-
-' ViewControllers usan la fachada
-LoginController ..> GestionEventos : usa >
-UserDashboardController ..> GestionEventos : usa >
-AdminDashboardController ..> GestionEventos : usa >
-EventDetailController ..> GestionEventos : usa >
-MisComprasController ..> GestionEventos : usa >
-PerfilController ..> GestionEventos : usa >
 
 @enduml
