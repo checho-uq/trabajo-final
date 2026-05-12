@@ -1,277 +1,845 @@
 @startuml
-' TicketHub - Diagrama de Clases
-' RF-044: Diagrama de clases con relaciones
+' TicketHub - Diagrama de Clases Completo
+' RF-044: Diagrama con relaciones, multiplicidad, roles, jerarquías, atributos y estética
+' Versión: 2.0 - Todas las clases, patrones y relaciones incluidas
 
-skinparam backgroundColor #FEFEFE
+skinparam backgroundColor #0D1117
+skinparam defaultFontName Consolas
+skinparam defaultFontSize 11
+skinparam defaultTextColor #C9D1D9
+
 skinparam class {
-  BorderColor #1a3a5c
-  BackgroundColor #E8F0FE
-  ArrowColor #1a3a5c
+  BorderColor #30363D
+  BackgroundColor #161B22
+  FontColor #C9D1D9
+  HeaderBackgroundColor #1F2937
+  ArrowColor #58A6FF
 }
 
-package "Modelo" {
-  class Usuario {
-    - idUsuario: String
-    - nombreCompleto: String
-    - email: String
-    - telefono: String
-    - password: String
-    - esAdmin: boolean
-    - metodosPago: List<MetodoPago>
-    - historialCompras: List<Compra>
-    + actualizar(mensaje: String)
+skinparam interface {
+  BorderColor #58A6FF
+  BackgroundColor #0D2F53
+  FontColor #58A6FF
+  ArrowColor #58A6FF
+}
+
+skinparam enum {
+  BorderColor #D2A8FF
+  BackgroundColor #2D1B4E
+  FontColor #D2A8FF
+  ArrowColor #D2A8FF
+}
+
+skinparam package {
+  BorderColor #30363D
+  BackgroundColor #0D1117
+  FontColor #8B949E
+}
+
+skinparam arrow {
+  Color #58A6FF
+  FontColor #8B949E
+}
+
+skinparam note {
+  BackgroundColor #1F2937
+  BorderColor #30363D
+  FontColor #C9D1D9
+}
+
+legend top right
+  <color:#58A6FF><b>TicketHub</b></color> — Diagrama de Clases
+  <color:#8B949E>Relaciones:</color>
+  <#58A6FF>───></color> Asociación
+  <#58A6FF>──*></color> Composición
+  <#58A6FF>──|></color> Herencia
+  <#58A6FF>..|></color> Implementación
+  <#58A6FF>..></color> Dependencia
+endlegend
+
+' ===================================================================
+'  PAQUETE: MODELO PRINCIPAL (Dominio)
+' ===================================================================
+package "Modelo Principal (Dominio)" as DOMAIN #0D1117 {
+
+  ' --- Usuario & Observer ---
+  class Usuario as "Usuario\n(Observer)" #161B22 {
+    <color:#58A6FF>- idUsuario: String
+    <color:#58A6FF>- nombreCompleto: String
+    <color:#58A6FF>- email: String
+    <color:#58A6FF>- telefono: String
+    <color:#58A6FF>- password: String
+    <color:#58A6FF>- esAdmin: boolean
+    <color:#58A6FF>- metodosPago: List<MetodoPago>
+    <color:#58A6FF>- historialCompras: List<Compra>
+    <color:#58A6FF>- notificacionesPendientes: List<String>
+    --
+    <color:#3FB950>+ actualizar(mensaje: String): void
+    <color:#3FB950>+ gestionarPerfil(): void
+    <color:#3FB950>+ gestionarMetodosPago(): void
+    <color:#3FB950>+ consultarComprasAsociadas(): void
+    <color:#3FB950>+ getNotificacionesPendientes(): List<String>
+    <color:#3FB950>+ limpiarNotificaciones(): void
   }
 
-  class MetodoPago {
-    - tipo: String
-    - detalle: String
+  note right of Usuario
+    <b>Patrón Observer</b>
+    Actúa como observador.
+    Recibe notificaciones
+    cuando un Evento cambia
+    de estado.
+  end note
+
+  class MetodoPago #161B22 {
+    <color:#58A6FF>- tipo: String
+    <color:#58A6FF>- detalle: String
   }
 
-  class Evento {
-    - idEvento: String
-    - nombre: String
-    - categoria: String
-    - descripcion: String
-    - ciudad: String
-    - fecha: LocalDateTime
-    - estado: EstadoEvento
-    - recintoAsociado: Recinto
-    - politicas: PoliticasEvento
-    - observadores: List<Usuario>
-    + agregarObservador(u: Usuario)
-    + notificar(mensaje: String)
-    + consultarDisponibilidad(): Map
+  ' --- Evento & Subject ---
+  class Evento as "Evento\n(Subject)" #161B22 {
+    <color:#58A6FF>- idEvento: String
+    <color:#58A6FF>- nombre: String
+    <color:#58A6FF>- categoria: String
+    <color:#58A6FF>- descripcion: String
+    <color:#58A6FF>- ciudad: String
+    <color:#58A6FF>- fecha: LocalDateTime
+    <color:#58A6FF>- estado: EstadoEvento
+    <color:#58A6FF>- recintoAsociado: Recinto
+    <color:#58A6FF>- politicas: PoliticasEvento
+    <color:#58A6FF>- observadores: List<Usuario>
+    --
+    <color:#3FB950>+ agregarObservador(u: Usuario): void
+    <color:#3FB950>+ notificar(mensaje: String): void
+    <color:#3FB950>+ publicar(): void
+    <color:#3FB950>+ pausar(): void
+    <color:#3FB950>+ cancelar(): void
+    <color:#3FB950>+ consultarDisponibilidad(): Map<Zona, Integer>
   }
 
-  enum EstadoEvento {
-    BORRADOR
-    PUBLICADO
-    PAUSADO
-    CANCELADO
-    FINALIZADO
+  note right of Evento
+    <b>Patrón Observer</b>
+    Actúa como sujeto (Subject).
+    Notifica a los Usuarios
+    observadores cuando su
+    estado cambia.
+  end note
+
+  enum EstadoEvento #2D1B4E {
+    <color:#D2A8FF>BORRADOR
+    <color:#D2A8FF>PUBLICADO
+    <color:#D2A8FF>PAUSADO
+    <color:#D2A8FF>CANCELADO
+    <color:#D2A8FF>FINALIZADO
   }
 
-  class PoliticasEvento {
-    - politicaCancelacion: String
-    - politicaReembolso: String
+  class PoliticasEvento #161B22 {
+    <color:#58A6FF>- politicaCancelacion: String
+    <color:#58A6FF>- politicaReembolso: String
   }
 
-  class Recinto {
-    - idRecinto: String
-    - nombre: String
-    - direccion: String
-    - ciudad: String
-    - zonas: List<Zona>
-    + administrarZonas(z: Zona)
+  ' --- Recinto, Zona, Asiento ---
+  class Recinto #161B22 {
+    <color:#58A6FF>- idRecinto: String
+    <color:#58A6FF>- nombre: String
+    <color:#58A6FF>- direccion: String
+    <color:#58A6FF>- ciudad: String
+    <color:#58A6FF>- zonas: List<Zona>
+    --
+    <color:#3FB950>+ administrarZonas(z: Zona): void
   }
 
-  class Zona {
-    - idZona: String
-    - nombre: String
-    - capacidad: int
-    - precioBase: double
-    - estrategiaTarifa: ITarifaStrategy
-    - asientos: List<Asiento>
-    + consultarOcupacion(): double
-    + calcularPrecioFinal(): double
+  class Zona #161B22 {
+    <color:#58A6FF>- idZona: String
+    <color:#58A6FF>- nombre: String
+    <color:#58A6FF>- capacidad: int
+    <color:#58A6FF>- precioBase: double
+    <color:#58A6FF>- estrategiaTarifa: ITarifaStrategy
+    <color:#58A6FF>- asientos: List<Asiento>
+    --
+    <color:#3FB950>+ consultarOcupacion(): double
+    <color:#3FB950>+ calcularPrecioFinal(): double
+    <color:#3FB950>+ definirPrecioBase(precio: double): void
+    <color:#3FB950>+ definirCapacidad(cap: int): void
+    <color:#3FB950>+ setEstrategiaTarifa(estrategia: ITarifaStrategy): void
+    <color:#3FB950>+ addAsiento(a: Asiento): void
   }
 
-  class Asiento {
-    - idAsiento: String
-    - fila: String
-    - numero: String
-    - estado: EstadoAsiento
-    + cambiarEstado(nuevo: EstadoAsiento)
+  note right of Zona
+    <b>Patrón Strategy</b>
+    Delega el cálculo del
+    precio final a una
+    ITarifaStrategy.
+  end note
+
+  class Asiento #161B22 {
+    <color:#58A6FF>- idAsiento: String
+    <color:#58A6FF>- fila: String
+    <color:#58A6FF>- numero: String
+    <color:#58A6FF>- estado: EstadoAsiento
+    --
+    <color:#3FB950>+ cambiarEstado(nuevo: EstadoAsiento): void
+    <color:#3FB950>+ getFila(): String
+    <color:#3FB950>+ getNumero(): String
   }
 
-  enum EstadoAsiento {
-    DISPONIBLE
-    RESERVADO
-    VENDIDO
-    BLOQUEADO
+  enum EstadoAsiento #2D1B4E {
+    <color:#D2A8FF>DISPONIBLE
+    <color:#D2A8FF>RESERVADO
+    <color:#D2A8FF>VENDIDO
+    <color:#D2A8FF>BLOQUEADO
   }
 
-  class Compra {
-    - idCompra: String
-    - usuarioAsociado: Usuario
-    - eventoAsociado: Evento
-    - fechaCreacion: LocalDateTime
-    - total: double
-    - estadoActual: IEstadoCompra
-    - itemsCompra: List<Entrada>
-    + pagar()
-    + cancelar()
-    + calcularTotal()
+  ' --- Compra, Entrada, Incidencia ---
+  class Compra as "Compra\n(Context State)" #161B22 {
+    <color:#58A6FF>- idCompra: String
+    <color:#58A6FF>- usuarioAsociado: Usuario
+    <color:#58A6FF>- eventoAsociado: Evento
+    <color:#58A6FF>- fechaCreacion: LocalDateTime
+    <color:#58A6FF>- total: double
+    <color:#58A6FF>- estadoActual: IEstadoCompra
+    <color:#58A6FF>- itemsCompra: List<Entrada>
+    --
+    <color:#3FB950>+ pagar(): void
+    <color:#3FB950>+ cancelar(): void
+    <color:#3FB950>+ reportarIncidencia(): void
+    <color:#3FB950>+ calcularTotal(): void
+    <color:#3FB950>+ consultarDetalle(): void
+    <color:#3FB950>+ agregarEntrada(e: Entrada): void
+    <color:#3FB950>+ setEstado(estado: IEstadoCompra): void
   }
 
-  abstract class Entrada {
-    # idEntrada: String
-    # zona: Zona
-    # asiento: Asiento
-    # estadoEntrada: EstadoEntrada
-    + {abstract} getPrecioFinal(): double
-    + generarComprobante()
-    + anular()
+  note right of Compra
+    <b>Patrón State</b>
+    Delega su comportamiento
+    según el estado actual
+    (IEstadoCompra).
+    Los estados gestionan
+    las transiciones.
+  end note
+
+  abstract class Entrada as "Entrada\n(Component)" #161B22 {
+    <color:#58A6FF># idEntrada: String
+    <color:#58A6FF># zona: Zona
+    <color:#58A6FF># asiento: Asiento
+    <color:#58A6FF># estadoEntrada: EstadoEntrada
+    --
+    <color:#F0883E>{abstract} + getPrecioFinal(): double
+    <color:#3FB950>+ generarComprobante(): void
+    <color:#3FB950>+ anular(): void
+    <color:#3FB950>+ getCostoServicios(): double
+    <color:#3FB950>+ getIdEntrada(): String
+    <color:#3FB950>+ getZona(): Zona
+    <color:#3FB950>+ getAsiento(): Asiento
   }
 
-  class EntradaBase {
-    - precioBase: double
-    + getPrecioFinal(): double
+  note right of Entrada
+    <b>Patrón Decorator</b>
+    Componente base.
+    ServicioDecorator lo
+    envuelve para agregar
+    servicios adicionales
+    de forma dinámica.
+  end note
+
+  class EntradaBase #161B22 {
+    <color:#58A6FF>- precioBase: double
+    --
+    <color:#3FB950>+ getPrecioFinal(): double
   }
 
-  enum EstadoEntrada {
-    ACTIVA
-    USADA
-    ANULADA
+  enum EstadoEntrada #2D1B4E {
+    <color:#D2A8FF>ACTIVA
+    <color:#D2A8FF>USADA
+    <color:#D2A8FF>ANULADA
   }
 
-  class Incidencia {
-    - idIncidencia: String
-    - tipo: String
-    - descripcion: String
-    - fecha: LocalDateTime
-    - entidadAfectada: String
-    + registrar()
+  class Incidencia #161B22 {
+    <color:#58A6FF>- idIncidencia: String
+    <color:#58A6FF>- tipo: String
+    <color:#58A6FF>- descripcion: String
+    <color:#58A6FF>- fecha: LocalDateTime
+    <color:#58A6FF>- entidadAfectada: String
+    --
+    <color:#3FB950>+ registrar(): void
   }
 
-  class Filtros {
-    - fecha: String
-    - ciudad: String
-    - categoria: String
-    - precioMax: double
-    - estado: String
-    - fechaInicio: LocalDate
-    - fechaFin: LocalDate
+  class Filtros #161B22 {
+    <color:#58A6FF>- fecha: String
+    <color:#58A6FF>- ciudad: String
+    <color:#58A6FF>- categoria: String
+    <color:#58A6FF>- precioMax: double
+    <color:#58A6FF>- estado: String
+    <color:#58A6FF>- fechaInicio: LocalDate
+    <color:#58A6FF>- fechaFin: LocalDate
+    --
+    <color:#3FB950>+ getCiudad(): String
+    <color:#3FB950>+ setCiudad(c: String): void
+    <color:#3FB950>+ getCategoria(): String
+    <color:#3FB950>+ setCategoria(c: String): void
+    <color:#3FB950>+ getFechaInicio(): LocalDate
+    <color:#3FB950>+ setFechaInicio(f: LocalDate): void
+    <color:#3FB950>+ getFechaFin(): LocalDate
+    <color:#3FB950>+ setFechaFin(f: LocalDate): void
+    <color:#3FB950>+ getPrecioMax(): double
+    <color:#3FB950>+ setPrecioMax(p: double): void
+    <color:#3FB950>+ getEstado(): String
+    <color:#3FB950>+ setEstado(e: String): void
   }
 }
 
-package "Patrones Creacionales" {
-  class EventoBuilder {
-    + conId(id: String): EventoBuilder
-    + conNombre(n: String): EventoBuilder
-    + build(): Evento
+' ===================================================================
+'  PAQUETE: PATRONES CREACIONALES
+' ===================================================================
+package "Patrones Creacionales" as CREATIONAL #0D1117 {
+
+  class EventoBuilder #1F2937 {
+    <color:#58A6FF>- id: String
+    <color:#58A6FF>- nombre: String
+    <color:#58A6FF>- categoria: String
+    <color:#58A6FF>- descripcion: String
+    <color:#58A6FF>- ciudad: String
+    <color:#58A6FF>- fecha: LocalDateTime
+    <color:#58A6FF>- recinto: Recinto
+    <color:#58A6FF>- politicas: PoliticasEvento
+    --
+    <color:#3FB950>+ conId(id: String): EventoBuilder
+    <color:#3FB950>+ conNombre(n: String): EventoBuilder
+    <color:#3FB950>+ conCategoria(c: String): EventoBuilder
+    <color:#3FB950>+ conDescripcion(d: String): EventoBuilder
+    <color:#3FB950>+ enCiudad(c: String): EventoBuilder
+    <color:#3FB950>+ enFecha(f: LocalDateTime): EventoBuilder
+    <color:#3FB950>+ conRecinto(r: Recinto): EventoBuilder
+    <color:#3FB950>+ conPoliticas(p: PoliticasEvento): EventoBuilder
+    <color:#F0883E>+ build(): Evento
   }
 
-  interface IEntradaFactory {
-    + crearEntrada(z: Zona, a: Asiento): Entrada
+  note right of EventoBuilder
+    <b>Patrón Builder</b>
+    Construye objetos Evento
+    paso a paso, permitiendo
+    crear instancias con
+    diferentes configuraciones.
+  end note
+
+  interface IEntradaFactory #0D2F53 {
+    <color:#3FB950>+ crearEntrada(z: Zona, a: Asiento): Entrada
   }
 
-  class EntradaNumeradaFactory {
-    + crearEntrada(z: Zona, a: Asiento): Entrada
+  note right of IEntradaFactory
+    <b>Patrón Factory Method</b>
+    Define la interfaz para
+    crear Entradas.
+    Las subclases deciden
+    qué tipo concreto instanciar.
+  end note
+
+  class EntradaNumeradaFactory #1F2937 {
+    <color:#58A6FF>- idCounter: AtomicLong
+    --
+    <color:#3FB950>+ crearEntrada(z: Zona, a: Asiento): Entrada
   }
 }
 
-package "Patrones Estructurales" {
-  abstract class ServicioDecorator {
-    # entradaDecorada: Entrada
-    + {abstract} getCostoAdicional(): double
+' ===================================================================
+'  PAQUETE: PATRONES ESTRUCTURALES
+' ===================================================================
+package "Patrones Estructurales" as STRUCTURAL #0D1117 {
+
+  abstract class ServicioDecorator as "ServicioDecorator\n(Decorator)" #1F2937 {
+    <color:#58A6FF># entradaDecorada: Entrada
+    --
+    <color:#F0883E>{abstract} + getCostoAdicional(): double
+    <color:#3FB950>+ getEntradaDecorada(): Entrada
+    <color:#3FB950>+ getPrecioFinal(): double
   }
 
-  class AccesoVipDecorator
-  class SeguroCancelacionDecorator
-  class MerchandisingDecorator
-  class ParqueaderoDecorator
-  class AccesoPreferencialDecorator
+  note right of ServicioDecorator
+    <b>Patrón Decorator</b>
+    Envuelve una Entrada
+    para agregar servicios
+    sin modificar la clase base.
+    Pueden apilarse múltiples
+    decoradores.
+  end note
 
-  interface IPagoAdapter {
-    + procesarPago(monto: double): boolean
+  class AccesoVipDecorator #1F2937 {
+    <color:#3FB950>+ getCostoAdicional(): double
   }
 
-  class PayPalAdapter
-  class TarjetaCreditoAdapter
-
-  interface IReporteService {
-    + generarReporteCSV(f: Filtros, path: String)
-    + generarReportePDF(f: Filtros, path: String)
-    + generarReporteInteligente(config: ReporteConfig, path: String)
+  class SeguroCancelacionDecorator #1F2937 {
+    <color:#3FB950>+ getCostoAdicional(): double
   }
 
-  class ReporteProxy {
-    - service: ReporteReal
-    - usuarioActual: Usuario
+  class MerchandisingDecorator #1F2937 {
+    <color:#3FB950>+ getCostoAdicional(): double
   }
 
-  class ReporteReal
+  class ParqueaderoDecorator #1F2937 {
+    <color:#3FB950>+ getCostoAdicional(): double
+  }
+
+  class AccesoPreferencialDecorator #1F2937 {
+    <color:#3FB950>+ getCostoAdicional(): double
+  }
+
+  interface IPagoAdapter #0D2F53 {
+    <color:#3FB950>+ procesarPago(monto: double): boolean
+  }
+
+  note right of IPagoAdapter
+    <b>Patrón Adapter</b>
+    Adapta diferentes sistemas
+    de pago a una interfaz
+    común. Permite cambiar
+    el método de pago sin
+    modificar el flujo de compra.
+  end note
+
+  class PayPalAdapter #1F2937 {
+    <color:#3FB950>+ procesarPago(monto: double): boolean
+  }
+
+  class TarjetaCreditoAdapter #1F2937 {
+    <color:#3FB950>+ procesarPago(monto: double): boolean
+  }
+
+  ' --- Proxy ---
+  interface IReporteService #0D2F53 {
+    <color:#3FB950>+ generarReporteCSV(f: Filtros, path: String): void
+    <color:#3FB950>+ generarReportePDF(f: Filtros, path: String): void
+    <color:#3FB950>+ generarReporteInteligente(config: ReporteConfig, path: String): void
+  }
+
+  note right of IReporteService
+    <b>Patrón Proxy</b>
+    IReporteService define
+    la interfaz común.
+    ReporteProxy controla el
+    acceso según permisos del
+    usuario antes de delegar
+    en ReporteReal.
+  end note
+
+  class ReporteProxy #1F2937 {
+    <color:#58A6FF>- service: ReporteReal
+    <color:#58A6FF>- usuarioActual: Usuario
+    --
+    <color:#3FB950>+ generarReporteCSV(f: Filtros, path: String): void
+    <color:#3FB950>+ generarReportePDF(f: Filtros, path: String): void
+    <color:#3FB950>+ generarReporteInteligente(config: ReporteConfig, path: String): void
+  }
+
+  class ReporteReal #1F2937 {
+    <color:#3FB950>+ generarReporteCSV(f: Filtros, path: String): void
+    <color:#3FB950>+ generarReportePDF(f: Filtros, path: String): void
+    <color:#3FB950>+ generarReporteInteligente(config: ReporteConfig, path: String): void
+  }
+
+  class ReporteConfig #1F2937 {
+    <color:#58A6FF>- tipo: TipoReporte
+    <color:#58A6FF>- incluirGraficas: boolean
+    <color:#58A6FF>- incluirAnalisis: boolean
+    <color:#58A6FF>- incluirKPIs: boolean
+    --
+    <color:#3FB950>+ {static} ejecutivo(): ReporteConfig
+    <color:#3FB950>+ {static} detallado(): ReporteConfig
+    <color:#3FB950>+ {static} resumido(): ReporteConfig
+  }
+
+  enum TipoReporte #2D1B4E {
+    <color:#D2A8FF>EJECUTIVO
+    <color:#D2A8FF>DETALLADO
+    <color:#D2A8FF>RESUMIDO
+  }
+
+  class ReporteData #1F2937 {
+    <color:#58A6FF>- tituloReporte: String
+    <color:#58A6FF>- fechaGeneracion: String
+    <color:#58A6FF>- totalIngresos: double
+    <color:#58A6FF>- totalCompras: long
+    <color:#58A6FF>- totalEventos: long
+    <color:#58A6FF>- totalUsuarios: long
+    <color:#58A6FF>- tasaCancelacion: double
+    <color:#58A6FF>- ingresosPorEvento: Map<String, Double>
+    <color:#58A6FF>- ocupacionPorZona: Map<String, Double>
+    <color:#58A6FF>- topEventos: List<String>
+    <color:#58A6FF>- ventasPorPeriodo: Map<String, Double>
+    <color:#58A6FF>- incidenciasRecientes: List<String>
+    <color:#58A6FF>- resumenEjecutivo: String
+  }
+
+  class ReporteDataCollector #1F2937 {
+    <color:#58A6FF>- gestion: GestionEventos
+    --
+    <color:#3FB950>+ recolectarDatos(config: ReporteConfig): ReporteData
+  }
+
+  class AnalisisEstadistico #1F2937 {
+    <color:#3FB950>+ generarResumenEjecutivo(data: ReporteData): String
+    <color:#3FB950>+ generarInsights(data: ReporteData): List<String>
+    <color:#3FB950>+ analizarTendencia(data: ReporteData): String
+    <color:#3FB950>+ generarRecomendaciones(data: ReporteData): List<String>
+  }
+
+  class PDFRenderer #1F2937 {
+    <color:#3FB950>+ renderizar(data: ReporteData, config: ReporteConfig, path: String): void
+  }
 }
 
-package "Patrones Comportamiento" {
-  interface ITarifaStrategy {
-    + calcular(zona: Zona): double
+' ===================================================================
+'  PAQUETE: PATRONES DE COMPORTAMIENTO
+' ===================================================================
+package "Patrones de Comportamiento" as BEHAVIORAL #0D1117 {
+
+  ' --- Strategy ---
+  interface ITarifaStrategy #0D2F53 {
+    <color:#3FB950>+ calcular(zona: Zona): double
   }
 
-  class TarifaEstandar
-  class TarifaPreventa
+  note right of ITarifaStrategy
+    <b>Patrón Strategy</b>
+    Define una familia de
+    algoritmos de tarifa.
+    Zona delega en una
+    estrategia concreta
+    para calcular el precio.
+  end note
 
-  interface IEstadoCompra {
-    + siguiente(c: Compra)
-    + cancelar(c: Compra)
-    + getNombreEstado(): String
+  class TarifaEstandar #1F2937 {
+    <color:#3FB950>+ calcular(zona: Zona): double
   }
 
-  class CompraCreada
-  class CompraPagada
-  class CompraConfirmada
-  class CompraCancelada
-  class CompraReembolsada
-  class CompraIncidencia
+  class TarifaPreventa #1F2937 {
+    <color:#3FB950>+ calcular(zona: Zona): double
+  }
+
+  ' --- State ---
+  interface IEstadoCompra as "IEstadoCompra\n(State)" #0D2F53 {
+    <color:#3FB950>+ siguiente(c: Compra): void
+    <color:#3FB950>+ cancelar(c: Compra): void
+    <color:#3FB950>+ getNombreEstado(): String
+  }
+
+  note right of IEstadoCompra
+    <b>Patrón State</b>
+    Cada estado concreto
+    implementa las transiciones
+    permitidas. Compra delega
+    el comportamiento según
+    su estado actual.
+  end note
+
+  class CompraCreada #1F2937 {
+    <color:#3FB950>+ siguiente(c: Compra): void
+    <color:#3FB950>+ cancelar(c: Compra): void
+  }
+
+  class CompraPagada #1F2937 {
+    <color:#3FB950>+ siguiente(c: Compra): void
+    <color:#3FB950>+ cancelar(c: Compra): void
+  }
+
+  class CompraConfirmada #1F2937 {
+    <color:#3FB950>+ siguiente(c: Compra): void
+    <color:#3FB950>+ cancelar(c: Compra): void
+  }
+
+  class CompraCancelada #1F2937 {
+    <color:#3FB950>+ siguiente(c: Compra): void
+    <color:#3FB950>+ cancelar(c: Compra): void
+  }
+
+  class CompraReembolsada #1F2937 {
+    <color:#3FB950>+ siguiente(c: Compra): void
+    <color:#3FB950>+ cancelar(c: Compra): void
+  }
+
+  class CompraIncidencia #1F2937 {
+    <color:#3FB950>+ siguiente(c: Compra): void
+    <color:#3FB950>+ cancelar(c: Compra): void
+  }
 }
 
-' === RELACIONES ===
+' ===================================================================
+'  PAQUETE: SERVICIOS Y CONTROLADORES (Facade)
+' ===================================================================
+package "Servicios y Fachada (Facade + SRP)" as SERVICE #0D1117 {
+
+  class GestionEventos as "GestionEventos\n(Singleton + Facade)" #1F2937 {
+    <color:#58A6FF>- instance: GestionEventos
+    <color:#58A6FF>- usuarios: List<Usuario>
+    <color:#58A6FF>- eventos: List<Evento>
+    <color:#58A6FF>- compras: List<Compra>
+    <color:#58A6FF>- recintos: List<Recinto>
+    <color:#58A6FF>- incidencias: List<Incidencia>
+    <color:#58A6FF>- userService: UserService
+    <color:#58A6FF>- eventService: EventService
+    <color:#58A6FF>- venueService: VenueService
+    <color:#58A6FF>- purchaseService: PurchaseService
+    <color:#58A6FF>- incidentService: IncidentService
+    <color:#58A6FF>- reportService: ReportService
+    --
+    <color:#F0883E>{static} + getInstance(): GestionEventos
+    <color:#3FB950>+ inicializarDatosPrueba(): void
+    <color:#3FB950>+ registrarUsuario(...): Usuario
+    <color:#3FB950>+ iniciarSesion(...): Usuario
+    <color:#3FB950>+ crearEvento(builder: EventoBuilder): Evento
+    <color:#3FB950>+ explorarEventos(f: Filtros): List<Evento>
+    <color:#3FB950>+ crearCompra(...): Compra
+    <color:#3FB950>+ cancelarCompra(c: Compra): void
+    <color:#3FB950>+ reasignarAsientos(...): void
+    <color:#3FB950>+ resolverIncidencia(c: Compra): void
+    <color:#3FB950>+ obtenerTotalIngresos(): double
+    <color:#3FB950>+ obtenerTopEventos(): List<Evento>
+    <color:#3FB950>+ ... (otros métodos delegados)
+  }
+
+  note right of GestionEventos
+    <b>Patrón Singleton + Facade</b>
+    Única instancia en toda la app.
+    Actúa como fachada que delega
+    a servicios especializados
+    (UserService, EventService, etc.)
+    <b>SRP:</b> No ejecuta lógica,
+    solo coordina servicios.
+    <b>DIP:</b> Depende de abstracciones
+    de servicio.
+  end note
+
+  class UserService #1F2937 {
+    <color:#58A6FF>- usuarios: List<Usuario>
+    --
+    <color:#3FB950>+ registrarUsuario(...): Usuario
+    <color:#3FB950>+ iniciarSesion(...): Usuario
+    <color:#3FB950>+ actualizarUsuario(u: Usuario): void
+    <color:#3FB950>+ eliminarUsuario(id: String): void
+    <color:#3FB950>+ listarUsuarios(): List<Usuario>
+  }
+
+  class EventService #1F2937 {
+    <color:#58A6FF>- eventos: List<Evento>
+    <color:#58A6FF>- incidentService: IncidentService
+    --
+    <color:#3FB950>+ explorarEventos(f: Filtros): List<Evento>
+    <color:#3FB950>+ crearEvento(builder: EventoBuilder): Evento
+    <color:#3FB950>+ publicarEvento(e: Evento): void
+    <color:#3FB950>+ pausarEvento(e: Evento): void
+    <color:#3FB950>+ cancelarEvento(e: Evento): void
+    <color:#3FB950>+ eliminarEvento(id: String): void
+  }
+
+  class VenueService #1F2937 {
+    <color:#58A6FF>- recintos: List<Recinto>
+    --
+    <color:#3FB950>+ crearRecinto(r: Recinto): void
+    <color:#3FB950>+ crearZona(r: Recinto, z: Zona): void
+    <color:#3FB950>+ eliminarRecinto(id: String): void
+    <color:#3FB950>+ listarRecintos(): List<Recinto>
+  }
+
+  class PurchaseService #1F2937 {
+    <color:#58A6FF>- compras: List<Compra>
+    <color:#58A6FF>- incidentService: IncidentService
+    --
+    <color:#3FB950>+ crearCompra(...): Compra
+    <color:#3FB950>+ cancelarCompra(c: Compra): void
+    <color:#3FB950>+ resolverIncidencia(c: Compra): void
+    <color:#3FB950>+ reasignarAsientos(...): void
+    <color:#3FB950>+ registrarReembolso(c: Compra): void
+    <color:#3FB950>+ consultarHistorialCompras(...): List<Compra>
+  }
+
+  class IncidentService #1F2937 {
+    <color:#58A6FF>- incidencias: List<Incidencia>
+    --
+    <color:#3FB950>+ registrarIncidencia(i: Incidencia): void
+    <color:#3FB950>+ consultarIncidencias(f: Filtros): List<Incidencia>
+    <color:#3FB950>+ getIncidencias(): List<Incidencia>
+  }
+
+  class ReportService #1F2937 {
+    <color:#58A6FF>- compras: List<Compra>
+    --
+    <color:#3FB950>+ obtenerVentasPorPeriodo(...): Map
+    <color:#3FB950>+ obtenerOcupacionPorZona(e: Evento): Map
+    <color:#3FB950>+ obtenerIngresosServiciosAdicionales(e: Evento): Map
+    <color:#3FB950>+ obtenerTasaCancelacion(): double
+    <color:#3FB950>+ obtenerTopEventos(): List<Evento>
+    <color:#3FB950>+ obtenerTotalIngresos(): double
+  }
+
+  class DataInitializer #1F2937 {
+    <color:#3FB950>+ inicializar(): void
+  }
+}
+
+' ===================================================================
+'  RELACIONES CON MULTIPLICIDAD Y ROLES
+' ===================================================================
+
+' ========== DOMINIO ==========
 
 ' Composición: Recinto -> Zona -> Asiento
-Recinto *-- Zona : contiene
-Zona *-- Asiento : contiene
+Recinto "1" *-- "0..*" Zona : <contiene> >
+Zona "1" *-- "0..*" Asiento : <contiene> >
 
-' Asociaciones
-Usuario --> MetodoPago : tiene >
-Usuario --> Compra : historial >
-Evento --> Recinto : se realiza en >
-Evento --> PoliticasEvento : tiene >
-Evento --> Usuario : notifica a (Observer) >
-Compra --> Usuario : pertenece a >
-Compra --> Evento : asociada a >
-Compra --> Entrada : contiene >
-Entrada --> Zona : ubicada en >
-Entrada --> Asiento : asignada a >
+' Asociaciones Usuario
+Usuario "1" --> "0..*" MetodoPago : <métodos de pago>
+Usuario "1" --> "0..*" Compra : <historial de compras>
 
-' Herencia Entrada
+' Evento - Observer
+Evento "1" --> "0..*" Usuario : <observadores>\n(Observer)
+Evento "1" --> "1" Recinto : <se realiza en>
+Evento "1" --> "1" PoliticasEvento : <políticas>
+
+' Estado Evento
+Evento "1" --> "1" EstadoEvento : <estado>
+
+' Zona - Strategy
+Zona "1" --> "1" ITarifaStrategy : <estrategia\nde precio>
+
+' Compra relaciones
+Compra "0..*" --> "1" Usuario : <pertenece a>
+Compra "0..*" --> "1" Evento : <asociada a>
+Compra "1" --> "0..*" Entrada : <items de compra>
+
+' Estado Compra
+Compra "1" --> "1" IEstadoCompra : <estado actual>
+
+' Entrada relaciones
+Entrada "0..*" --> "1" Zona : <ubicada en>
+Entrada "0..1" --> "1" Asiento : <asignada a>
+
+' Incidencia
+Usuario --> Incidencia : genera >
+Evento --> Incidencia : genera >
+Compra --> Incidencia : genera >
+
+' Filtros usado por servicios
+EventService ..> Filtros : usa >
+ReportService ..> Filtros : usa >
+IncidentService ..> Filtros : usa >
+
+' ========== HERENCIA ==========
+
+' Herencia Entrada (Decorator pattern)
 Entrada <|-- EntradaBase
 Entrada <|-- ServicioDecorator
 
-' Herencia Decorator
-ServicioDecorator <|-- AccesoVipDecorator
-ServicioDecorator <|-- SeguroCancelacionDecorator
-ServicioDecorator <|-- MerchandisingDecorator
-ServicioDecorator <|-- ParqueaderoDecorator
-ServicioDecorator <|-- AccesoPreferencialDecorator
+' Herencia Decorators concretos
+ServicioDecorator <|-- AccesoVipDecorator : +$50.000
+ServicioDecorator <|-- SeguroCancelacionDecorator : +$15.000
+ServicioDecorator <|-- MerchandisingDecorator : +$25.000
+ServicioDecorator <|-- ParqueaderoDecorator : +$20.000
+ServicioDecorator <|-- AccesoPreferencialDecorator : +$35.000
 
-' Strategy
-Zona --> ITarifaStrategy : usa >
-ITarifaStrategy <|.. TarifaEstandar
-ITarifaStrategy <|.. TarifaPreventa
+' ========== PATRÓN STRATEGY ==========
+ITarifaStrategy <|.. TarifaEstandar : precio base
+ITarifaStrategy <|.. TarifaPreventa : -20%
 
-' State
-Compra --> IEstadoCompra : estado >
-IEstadoCompra <|.. CompraCreada
-IEstadoCompra <|.. CompraPagada
-IEstadoCompra <|.. CompraConfirmada
-IEstadoCompra <|.. CompraCancelada
-IEstadoCompra <|.. CompraReembolsada
-IEstadoCompra <|.. CompraIncidencia
+' ========== PATRÓN STATE ==========
+IEstadoCompra <|.. CompraCreada : inicial
+IEstadoCompra <|.. CompraPagada : pagada
+IEstadoCompra <|.. CompraConfirmada : confirmada
+IEstadoCompra <|.. CompraCancelada : terminal
+IEstadoCompra <|.. CompraReembolsada : terminal
+IEstadoCompra <|.. CompraIncidencia : disputa
 
-' Factory
+note right of CompraIncidencia
+  Transiciones INCIDENCIA:
+  siguiente() -> PAGADA (resuelta)
+  cancelar() -> CANCELADA
+end note
+
+' ========== PATRÓN FACTORY ==========
 IEntradaFactory <|.. EntradaNumeradaFactory
-IEntradaFactory --> Entrada : crea >
+IEntradaFactory ..> Entrada : <<create>>
 
-' Adapter
+' ========== PATRÓN ADAPTER ==========
 IPagoAdapter <|.. PayPalAdapter
 IPagoAdapter <|.. TarjetaCreditoAdapter
+Compra ..> IPagoAdapter : usa para\nprocesar pago >
 
-' Proxy
+' ========== PATRÓN PROXY ==========
 IReporteService <|.. ReporteProxy
 IReporteService <|.. ReporteReal
+ReporteProxy --> ReporteReal : delega en >
+ReporteProxy --> Usuario : verifica\npermisos de >
+ReporteReal ..> ReporteConfig : usa >
+ReporteReal ..> ReporteData : genera >
+ReporteReal ..> ReporteDataCollector : recolecta >
+ReporteReal ..> AnalisisEstadistico : analiza >
+ReporteReal ..> PDFRenderer : renderiza >
 
-' Builder
-EventoBuilder --> Evento : construye >
+' ========== PATRÓN BUILDER ==========
+EventoBuilder ..> Evento : <<build>>
+
+' ========== PATRÓN SINGLETON / FACADE ==========
+GestionEventos --> UserService : delega >
+GestionEventos --> EventService : delega >
+GestionEventos --> VenueService : delega >
+GestionEventos --> PurchaseService : delega >
+GestionEventos --> IncidentService : delega >
+GestionEventos --> ReportService : delega >
+GestionEventos ..> DataInitializer : usa >
+
+' Servicios acceden a los modelos
+EventService --> Evento : gestiona >
+VenueService --> Recinto : gestiona >
+VenueService --> Zona : gestiona >
+PurchaseService --> Compra : gestiona >
+PurchaseService --> IncidentService : notifica >
+IncidentService --> Incidencia : gestiona >
+ReportService --> Compra : consulta >
+UserService --> Usuario : gestiona >
+
+' ViewControllers (dependencia - no son modelo pero usan la fachada)
+package "Controladores Vista (JavaFX)" as VIEW #0D1117 {
+  class LoginController #1F2937 {
+    <color:#3FB950>+ handleLogin(): void
+    <color:#3FB950>+ irARegistro(): void
+  }
+
+  class AdminDashboardController #1F2937 {
+    <color:#3FB950>+ CRUD Eventos/Usuarios/Compras
+    <color:#3FB950>+ CRUD Recintos/Zonas/Asientos
+    <color:#3FB950>+ Métricas y gráficas
+    <color:#3FB950>+ Reportes (Proxy)
+    <color:#3FB950>+ Incidencias y reasignación
+  }
+
+  class UserDashboardController #1F2937 {
+    <color:#3FB950>+ explorar eventos con filtros
+    <color:#3FB950>+ ver detalle de evento
+  }
+
+  class EventDetailController #1F2937 {
+    <color:#3FB950>+ cargar mapa de asientos
+    <color:#3FB950>+ comprar con decoradores
+    <color:#3FB950>+ generar recibo TXT
+  }
+
+  class MisComprasController #1F2937 {
+    <color:#3FB950>+ ver historial de compras
+    <color:#3FB950>+ cancelar compra
+    <color:#3FB950>+ descargar CSV/PDF (Proxy)
+  }
+
+  class PerfilController #1F2937 {
+    <color:#3FB950>+ gestionar perfil y métodos de pago
+  }
+
+  class RegistroController #1F2937 {
+    <color:#3FB950>+ registrar nuevo usuario
+  }
+}
+
+' ViewControllers usan la fachada
+LoginController ..> GestionEventos : usa >
+UserDashboardController ..> GestionEventos : usa >
+AdminDashboardController ..> GestionEventos : usa >
+EventDetailController ..> GestionEventos : usa >
+MisComprasController ..> GestionEventos : usa >
+PerfilController ..> GestionEventos : usa >
 
 @enduml
