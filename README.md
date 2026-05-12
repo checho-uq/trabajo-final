@@ -60,4 +60,4 @@ El sistema está diseñado siguiendo el mapa maestro de **9 patrones de diseño*
 *   **PDF Engine:** Apache PDFBox.
 
 ---
-Generado por **Antigravity AI** para el Proyecto Final de Programación.
+Proyecto Final de Programación II — Universidad del Quindío.
