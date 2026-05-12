@@ -24,6 +24,7 @@ public class PurchaseService {
         for (Entrada e : entradas) c.agregarEntrada(e);
         compras.add(c);
         u.getHistorialCompras().add(c);
+        u.actualizar("Compra creada: " + c.getIdCompra() + " - " + ev.getNombre() + " ($" + String.format("%,.0f", c.getTotal()) + ")");
         return c;
     }
 
@@ -31,20 +32,26 @@ public class PurchaseService {
         c.getItemsCompra().clear();
         for (Entrada e : nuevasEntradas) c.agregarEntrada(e);
         c.calcularTotal();
+        c.getUsuarioAsociado().actualizar("Compra " + c.getIdCompra() + " modificada. Nuevo total: $" + String.format("%,.0f", c.getTotal()));
     }
 
     public void cancelarCompra(Compra c) {
-        // Route through INCIDENCIA if already paid/confirmed
-        if (!(c.getEstadoActual() instanceof CompraIncidencia)
-                && !c.getEstadoActual().getNombreEstado().equals("CREADA")) {
-            c.reportarIncidencia();
+        String msg;
+        if (c.getEstadoActual().getNombreEstado().equals("CREADA")) {
+            c.cancelar();
+            for (Entrada e : c.getItemsCompra()) e.anular();
             incidentService.registrarIncidencia(new Incidencia("INC-" + System.currentTimeMillis(),
-                    "Cancelación con Incidencia", "Compra " + c.getIdCompra() + " en estado " + c.getEstadoActual().getNombreEstado(), c.getIdCompra()));
+                    "Cancelación de Compra", "Compra " + c.getIdCompra() + " cancelada", c.getIdCompra()));
+            msg = "Compra " + c.getIdCompra() + " cancelada.";
+        } else {
+            c.reportarIncidencia();
+            c.cancelar();
+            for (Entrada e : c.getItemsCompra()) e.anular();
+            incidentService.registrarIncidencia(new Incidencia("INC-" + System.currentTimeMillis(),
+                    "Cancelación con Incidencia", "Compra " + c.getIdCompra() + " cancelada desde estado " + c.getEstadoActual().getNombreEstado(), c.getIdCompra()));
+            msg = "Compra " + c.getIdCompra() + " cancelada (con incidencia).";
         }
-        c.cancelar();
-        for (Entrada e : c.getItemsCompra()) e.anular();
-        incidentService.registrarIncidencia(new Incidencia("INC-" + System.currentTimeMillis(),
-                "Cancelación de Compra", "Compra " + c.getIdCompra() + " cancelada", c.getIdCompra()));
+        c.getUsuarioAsociado().actualizar(msg);
     }
 
     public void resolverIncidencia(Compra c) {
@@ -52,6 +59,7 @@ public class PurchaseService {
             c.pagar();
             incidentService.registrarIncidencia(new Incidencia("INC-" + System.currentTimeMillis(),
                     "Incidencia Resuelta", "Compra " + c.getIdCompra() + " incidencia resuelta", c.getIdCompra()));
+            c.getUsuarioAsociado().actualizar("Incidencia resuelta para compra " + c.getIdCompra() + ". Estado: " + c.getEstadoActual().getNombreEstado());
         }
     }
 
@@ -68,14 +76,23 @@ public class PurchaseService {
     }
 
     public void reasignarAsientos(Compra c, Asiento viejo, Asiento nuevo) {
+        if ("CANCELADA".equals(c.getEstadoActual().getNombreEstado()) || "REEMBOLSADA".equals(c.getEstadoActual().getNombreEstado())) {
+            System.out.println("No se puede reasignar: compra " + c.getIdCompra() + " está " + c.getEstadoActual().getNombreEstado());
+            return;
+        }
         viejo.cambiarEstado(EstadoAsiento.DISPONIBLE);
         nuevo.cambiarEstado(EstadoAsiento.VENDIDO);
+        for (Entrada e : c.getItemsCompra()) {
+            if (e.getAsiento() != null && e.getAsiento().getIdAsiento().equals(viejo.getIdAsiento())) {
+                e.setAsiento(nuevo);
+            }
+        }
         System.out.println("Asiento reasignado en compra " + c.getIdCompra());
     }
 
     public void registrarReembolso(Compra c) {
         c.cancelar();
-        System.out.println("Reembolso registrado para compra " + c.getIdCompra());
+        c.getUsuarioAsociado().actualizar("Reembolso registrado para compra " + c.getIdCompra());
     }
 
     public List<Compra> listarCompras() {

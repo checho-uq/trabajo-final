@@ -179,6 +179,7 @@ public class DataInitializer {
         c1.agregarEntrada(ent1);
         c1.pagar();
         c1.pagar(); // CONFIRMADA
+        if (ent1.getAsiento() != null) ent1.getAsiento().cambiarEstado(EstadoAsiento.VENDIDO);
         compras.add(c1);
         juan.getHistorialCompras().add(c1);
 
@@ -186,12 +187,14 @@ public class DataInitializer {
         Compra c2 = new Compra("CMP-DEMO002", maria, e2);
         c2.agregarEntrada(ent2);
         c2.pagar();
+        if (ent2.getAsiento() != null) ent2.getAsiento().cambiarEstado(EstadoAsiento.VENDIDO);
         compras.add(c2);
         maria.getHistorialCompras().add(c2);
 
         Entrada ent3 = factory.crearEntrada(salonA, salonA.getAsientos().get(0));
         Compra c3 = new Compra("CMP-DEMO003", carlos, e3);
         c3.agregarEntrada(ent3);
+        if (ent3.getAsiento() != null) ent3.getAsiento().cambiarEstado(EstadoAsiento.VENDIDO);
         compras.add(c3);
         carlos.getHistorialCompras().add(c3);
 

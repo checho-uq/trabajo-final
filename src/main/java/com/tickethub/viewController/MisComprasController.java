@@ -83,7 +83,12 @@ public class MisComprasController {
     private void cancelarCompra(ActionEvent event) {
         Compra sel = tblCompras.getSelectionModel().getSelectedItem();
         if (sel == null) return;
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setHeaderText("Cancelar compra");
+        alert.setContentText("¿Cancelar compra " + sel.getIdCompra() + " de $" + String.format("%,.0f", sel.getTotal()) + "?");
+        if (alert.showAndWait().orElse(ButtonType.CANCEL) != ButtonType.OK) return;
         GestionEventos.getInstance().cancelarCompra(sel);
+        lblDetalle.setText("✅ Compra cancelada.");
         cargarCompras(new Filtros());
     }
 

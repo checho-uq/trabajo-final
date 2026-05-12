@@ -57,7 +57,7 @@ public class AdminDashboardController {
     @FXML private TableColumn<Zona, String> colZonaId, colZonaNombre, colZonaCapacidad, colZonaPrecio, colZonaRecinto, colZonaAsientos;
     @FXML private ComboBox<Recinto> cmbZonaRecinto;
     @FXML private ComboBox<String> cmbZonaNombre;
-    @FXML private TextField txtZonaCapacidad, txtZonaPrecio;
+    @FXML private TextField txtZonaCapacidad, txtZonaAsientos, txtZonaPrecio;
     @FXML private ComboBox<String> cmbZonaEstrategia;
 
     // Asientos tab
@@ -178,6 +178,7 @@ public class AdminDashboardController {
             if (z != null) {
                 cmbZonaNombre.setValue(z.getNombre());
                 txtZonaCapacidad.setText(String.valueOf(z.getCapacidad()));
+                txtZonaAsientos.setText(String.valueOf(z.getAsientos().size()));
                 txtZonaPrecio.setText(String.valueOf(z.getPrecioBase()));
                 // Set strategy combo
                 if (z.getEstrategiaTarifa() instanceof TarifaPreventa) {
@@ -333,6 +334,14 @@ public class AdminDashboardController {
             mostrarErrorLogica("Nombre y email son obligatorios.");
             return;
         }
+        if (!txtUsEmail.getText().contains("@")) {
+            mostrarErrorLogica("Email inválido. Debe contener @.");
+            return;
+        }
+        if (gestion.listarUsuarios().stream().anyMatch(u -> u.getEmail().equalsIgnoreCase(txtUsEmail.getText()))) {
+            mostrarErrorLogica("Ya existe un usuario con ese email.");
+            return;
+        }
         Usuario u = gestion.registrarUsuario(txtUsNombre.getText(), txtUsEmail.getText(),
                 txtUsTel.getText(), txtUsPassword.getText().isEmpty() ? "1234" : txtUsPassword.getText());
         u.setEsAdmin(chkUsAdmin.isSelected());
@@ -345,7 +354,13 @@ public class AdminDashboardController {
         Usuario u = tblUsuarios.getSelectionModel().getSelectedItem();
         if (u == null) { mostrarErrorLogica("Selecciona un usuario."); return; }
         if (!txtUsNombre.getText().isEmpty()) u.setNombreCompleto(txtUsNombre.getText());
-        if (!txtUsEmail.getText().isEmpty()) u.setEmail(txtUsEmail.getText());
+        if (!txtUsEmail.getText().isEmpty()) {
+            if (!txtUsEmail.getText().contains("@")) { mostrarErrorLogica("Email inválido."); return; }
+            if (gestion.listarUsuarios().stream().anyMatch(x -> x.getEmail().equalsIgnoreCase(txtUsEmail.getText()) && !x.getIdUsuario().equals(u.getIdUsuario()))) {
+                mostrarErrorLogica("Otro usuario ya usa ese email."); return;
+            }
+            u.setEmail(txtUsEmail.getText());
+        }
         if (!txtUsTel.getText().isEmpty()) u.setTelefono(txtUsTel.getText());
         u.setEsAdmin(chkUsAdmin.isSelected());
         gestion.actualizarUsuario(u);
@@ -370,6 +385,11 @@ public class AdminDashboardController {
     @FXML private void cancelarCompraAdmin(ActionEvent event) {
         Compra c = tblCompras.getSelectionModel().getSelectedItem();
         if (c == null) { mostrarErrorLogica("Selecciona una compra."); return; }
+        String estado = c.getEstadoActual().getNombreEstado();
+        if ("CANCELADA".equals(estado) || "REEMBOLSADA".equals(estado)) {
+            mostrarErrorLogica("La compra ya está " + estado + ". No se puede cancelar de nuevo.");
+            return;
+        }
         if (confirmarAccion("¿Cancelar compra " + c.getIdCompra() + " de $" + String.format("%,.0f", c.getTotal()) + "?")) {
             gestion.cancelarCompra(c); cargarDatos(); mostrarInfoLogica("Compra cancelada.");
         }
@@ -377,6 +397,10 @@ public class AdminDashboardController {
     @FXML private void registrarReembolso(ActionEvent event) {
         Compra c = tblCompras.getSelectionModel().getSelectedItem();
         if (c == null) { mostrarErrorLogica("Selecciona una compra."); return; }
+        if (!"CONFIRMADA".equals(c.getEstadoActual().getNombreEstado())) {
+            mostrarErrorLogica("Solo se puede reembolsar una compra CONFIRMADA.");
+            return;
+        }
         if (confirmarAccion("¿Reembolsar compra " + c.getIdCompra() + " de $" + String.format("%,.0f", c.getTotal()) + "?")) {
             gestion.registrarReembolso(c); cargarDatos(); mostrarInfoLogica("Reembolso registrado.");
         }
@@ -431,22 +455,29 @@ public class AdminDashboardController {
         }
         String id = "Z" + String.format("%03d", r.getZonas().size() + 100);
         int cap = 100;
+        int numAsientos = 50;
         double precio = 50000;
-        try { cap = Integer.parseInt(txtZonaCapacidad.getText()); } catch (Exception ignored) {}
-        try { precio = Double.parseDouble(txtZonaPrecio.getText()); } catch (Exception ignored) {}
+        try { cap = Integer.parseInt(txtZonaCapacidad.getText()); } catch (Exception e) { mostrarErrorLogica("Capacidad inválida. Se usará 100."); }
+        try { numAsientos = Integer.parseInt(txtZonaAsientos.getText()); } catch (Exception e) { mostrarErrorLogica("Asientos inválido. Se usará 50."); }
+        try { precio = Double.parseDouble(txtZonaPrecio.getText()); } catch (Exception e) { mostrarErrorLogica("Precio inválido. Se usará 50000."); }
+        if (numAsientos > cap) {
+            mostrarErrorLogica("Los asientos a crear (" + numAsientos + ") no pueden superar la capacidad (" + cap + "). Se usarán " + cap + " asientos.");
+            numAsientos = cap;
+        }
         Zona z = new Zona(id, nombre, cap, precio);
         // Apply strategy
         String estrategia = cmbZonaEstrategia.getValue();
         if ("Preventa (20% descuento)".equals(estrategia)) {
             z.setEstrategiaTarifa(new TarifaPreventa());
         }
-        for (int i = 1; i <= Math.min(cap, 100); i++) {
+        int toCreate = Math.min(numAsientos, cap);
+        for (int i = 1; i <= toCreate; i++) {
             z.addAsiento(new Asiento("A-" + id + "-" + i, nombre.substring(0, Math.min(2, nombre.length())).toUpperCase(), String.valueOf(i)));
         }
         gestion.crearZona(r, z);
         limpiarFormularioZona();
         cargarDatos();
-        mostrarInfoLogica("Zona \"" + nombre + "\" creada con asientos.");
+        mostrarInfoLogica("Zona \"" + nombre + "\" creada con " + toCreate + " asientos (capacidad: " + cap + ").");
     }
 
     @FXML private void actualizarZonaAction(ActionEvent event) {
@@ -475,7 +506,7 @@ public class AdminDashboardController {
     }
 
     private void limpiarFormularioZona() {
-        cmbZonaNombre.setValue(null); txtZonaCapacidad.clear(); txtZonaPrecio.clear(); cmbZonaEstrategia.setValue(null);
+        cmbZonaNombre.setValue(null); txtZonaCapacidad.clear(); txtZonaAsientos.clear(); txtZonaPrecio.clear(); cmbZonaEstrategia.setValue(null);
     }
 
     // ============= ACCIONES ASIENTOS =============
@@ -491,20 +522,32 @@ public class AdminDashboardController {
 
     @FXML private void habilitarAsiento(ActionEvent event) {
         Asiento a = tblAsientos.getSelectionModel().getSelectedItem();
-        if (a != null) { a.cambiarEstado(EstadoAsiento.DISPONIBLE); cargarAsientosAdmin(null); tblAsientos.refresh(); }
-        else mostrarErrorLogica("Selecciona un asiento.");
+        if (a == null) { mostrarErrorLogica("Selecciona un asiento."); return; }
+        if (a.getEstado() != EstadoAsiento.BLOQUEADO) {
+            mostrarErrorLogica("Solo se puede habilitar un asiento BLOQUEADO.");
+            return;
+        }
+        a.cambiarEstado(EstadoAsiento.DISPONIBLE); cargarAsientosAdmin(null); tblAsientos.refresh();
     }
 
     @FXML private void bloquearAsiento(ActionEvent event) {
         Asiento a = tblAsientos.getSelectionModel().getSelectedItem();
-        if (a != null) { a.cambiarEstado(EstadoAsiento.BLOQUEADO); cargarAsientosAdmin(null); tblAsientos.refresh(); }
-        else mostrarErrorLogica("Selecciona un asiento.");
+        if (a == null) { mostrarErrorLogica("Selecciona un asiento."); return; }
+        if (a.getEstado() != EstadoAsiento.DISPONIBLE) {
+            mostrarErrorLogica("Solo se puede bloquear un asiento DISPONIBLE.");
+            return;
+        }
+        a.cambiarEstado(EstadoAsiento.BLOQUEADO); cargarAsientosAdmin(null); tblAsientos.refresh();
     }
 
     @FXML private void liberarAsiento(ActionEvent event) {
         Asiento a = tblAsientos.getSelectionModel().getSelectedItem();
-        if (a != null) { a.cambiarEstado(EstadoAsiento.DISPONIBLE); cargarAsientosAdmin(null); tblAsientos.refresh(); }
-        else mostrarErrorLogica("Selecciona un asiento.");
+        if (a == null) { mostrarErrorLogica("Selecciona un asiento."); return; }
+        if (a.getEstado() != EstadoAsiento.VENDIDO) {
+            mostrarErrorLogica("Solo se puede liberar un asiento VENDIDO.");
+            return;
+        }
+        a.cambiarEstado(EstadoAsiento.DISPONIBLE); cargarAsientosAdmin(null); tblAsientos.refresh();
     }
 
     @FXML private void crearAsientoAction(ActionEvent event) {
@@ -516,6 +559,9 @@ public class AdminDashboardController {
         dialog.setContentText("ID del asiento:");
         dialog.showAndWait().ifPresent(id -> {
             if (id.isBlank()) return;
+            if (z.getAsientos().stream().anyMatch(a -> a.getIdAsiento().equals(id))) {
+                mostrarErrorLogica("Ya existe un asiento con ID '" + id + "' en esta zona."); return;
+            }
             TextInputDialog filaDlg = new TextInputDialog(z.getNombre().substring(0, Math.min(2, z.getNombre().length())).toUpperCase());
             filaDlg.setTitle("Fila");
             filaDlg.setHeaderText("Fila del asiento");

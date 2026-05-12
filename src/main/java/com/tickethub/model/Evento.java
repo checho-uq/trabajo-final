@@ -44,16 +44,19 @@ public class Evento {
     }
 
     public void publicar() {
+        if (estado == EstadoEvento.CANCELADO || estado == EstadoEvento.PUBLICADO) return;
         this.estado = EstadoEvento.PUBLICADO;
         notificar("El evento '" + nombre + "' ha sido PUBLICADO.");
     }
 
     public void pausar() {
+        if (estado == EstadoEvento.CANCELADO || estado == EstadoEvento.PAUSADO || estado == EstadoEvento.BORRADOR) return;
         this.estado = EstadoEvento.PAUSADO;
         notificar("El evento '" + nombre + "' ha sido PAUSADO.");
     }
 
     public void cancelar() {
+        if (estado == EstadoEvento.CANCELADO) return;
         this.estado = EstadoEvento.CANCELADO;
         notificar("El evento '" + nombre + "' ha sido CANCELADO. Consulte políticas de reembolso.");
     }

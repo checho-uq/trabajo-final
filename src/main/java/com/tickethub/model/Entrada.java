@@ -39,6 +39,7 @@ public abstract class Entrada {
     public String getIdEntrada() { return idEntrada; }
     public Zona getZona() { return zona; }
     public Asiento getAsiento() { return asiento; }
+    public void setAsiento(Asiento a) { this.asiento = a; }
     public EstadoEntrada getEstadoEntrada() { return estadoEntrada; }
     public void setEstadoEntrada(EstadoEntrada e) { this.estadoEntrada = e; }
 

@@ -38,6 +38,10 @@ public class PerfilController {
     @FXML
     private void guardarPerfil(ActionEvent event) {
         Usuario u = LoginController.getUsuarioLogueado();
+        if (txtNombre.getText().isBlank() || txtEmail.getText().isBlank()) {
+            lblMsg.setText("Nombre y email no pueden estar vacíos."); return;
+        }
+        if (!txtEmail.getText().contains("@")) { lblMsg.setText("Email inválido."); return; }
         u.setNombreCompleto(txtNombre.getText());
         u.setEmail(txtEmail.getText());
         u.setTelefono(txtTelefono.getText());

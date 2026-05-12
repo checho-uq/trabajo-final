@@ -22,6 +22,10 @@ public class RegistroController {
     private void handleRegistro(ActionEvent event) {
         String n = txtNombre.getText(), e = txtEmail.getText(), t = txtTelefono.getText(), p = txtPass.getText();
         if (n.isBlank() || e.isBlank() || p.isBlank()) { lblMsg.setText("Completa todos los campos obligatorios."); return; }
+        if (!e.contains("@")) { lblMsg.setText("Email inválido. Debe contener @."); return; }
+        if (GestionEventos.getInstance().listarUsuarios().stream().anyMatch(u -> u.getEmail().equalsIgnoreCase(e))) {
+            lblMsg.setText("Ya existe un usuario con ese email."); return;
+        }
         Usuario u = GestionEventos.getInstance().registrarUsuario(n, e, t, p);
         lblMsg.setStyle("-fx-text-fill: #3fb950;");
         lblMsg.setText("¡Registro exitoso! ID: " + u.getIdUsuario() + ". Vuelve al login.");

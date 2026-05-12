@@ -244,8 +244,12 @@
                                 <ComboBox fx:id="cmbZonaNombre" promptText="Ej: VIP, Preferencial, General..." prefWidth="180" editable="true"/>
                             </VBox>
                             <VBox spacing="4">
-                                <Label text="Capacidad *" styleClass="form-label"/>
-                                <TextField fx:id="txtZonaCapacidad" promptText="Nº asientos" prefWidth="110"/>
+                                <Label text="Capacidad máxima *" styleClass="form-label"/>
+                                <TextField fx:id="txtZonaCapacidad" promptText="Ej: 500" prefWidth="100"/>
+                            </VBox>
+                            <VBox spacing="4">
+                                <Label text="Asientos a crear" styleClass="form-label"/>
+                                <TextField fx:id="txtZonaAsientos" promptText="Ej: 50 (≤ capacidad)" prefWidth="140"/>
                             </VBox>
                             <VBox spacing="4">
                                 <Label text="Precio base ($) *" styleClass="form-label"/>

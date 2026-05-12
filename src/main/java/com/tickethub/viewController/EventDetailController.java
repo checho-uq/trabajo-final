@@ -348,7 +348,7 @@ public class EventDetailController {
 
         if (exito) {
             compra.pagar();
-            compra.pagar();
+            compra.pagar(); // PAGADA -> CONFIRMADA
             for (Asiento a : asientosSeleccionados) {
                 a.cambiarEstado(EstadoAsiento.VENDIDO);
             }
