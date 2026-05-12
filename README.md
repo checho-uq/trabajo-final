@@ -1,4 +1,4 @@
-# BookIt - Plataforma de Gestión de Eventos 🎤🎭
+# TicketHub - Plataforma de Gestión de Eventos 🎤🎭
 
 Plataforma modular desarrollada en **Java y JavaFX** para la gestión logística de eventos, reserva de entradas y administración de recintos. El proyecto implementa una arquitectura basada en patrones de diseño sólidos para garantizar escalabilidad y mantenimiento bajo los principios **SOLID**.
 
@@ -24,7 +24,7 @@ mvn clean compile javafx:run
 El sistema inicializa automáticamente datos de prueba para facilitar la navegación:
 
 *   **Administrador:**
-    *   Correo: `admin@logistica.com`
+    *   Correo: `admin@tickethub.com`
     *   Contraseña: `admin123`
 *   **Usuario Cliente:**
     *   Correo: `juan@test.com`

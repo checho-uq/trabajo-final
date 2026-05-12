@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<VBox alignment="CENTER" spacing="20" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.tickethub.viewController.LoginController"
+      stylesheets="@../css/styles.css">
+    <padding><Insets top="60" bottom="60" left="40" right="40"/></padding>
+
+    <VBox alignment="CENTER" spacing="16" styleClass="card" maxWidth="400">
+        <padding><Insets top="30" bottom="30" left="30" right="30"/></padding>
+        <Label text="🎫 TicketHub" styleClass="label-title" />
+        <Label text="Plataforma de Gestión de Eventos" styleClass="label-subtitle" />
+        <Separator />
+        <VBox spacing="6" alignment="CENTER_LEFT">
+            <Label text="Correo electrónico" styleClass="label-muted"/>
+            <TextField fx:id="txtCorreo" promptText="correo@ejemplo.com" />
+            <Label text="Contraseña" styleClass="label-muted"/>
+            <PasswordField fx:id="txtPassword" promptText="••••••••" />
+        </VBox>
+        <Button text="INICIAR SESIÓN" onAction="#handleLogin" styleClass="btn-primary" maxWidth="Infinity"/>
+        <Separator />
+        <Label text="¿No tienes cuenta?" styleClass="label-muted"/>
+        <Button text="Registrarse" onAction="#handleRegistro" styleClass="btn-ghost" maxWidth="Infinity"/>
+        <Label fx:id="lblError" styleClass="label-error" />
+    </VBox>
+</VBox>

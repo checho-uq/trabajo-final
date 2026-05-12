@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<BorderPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.tickethub.viewController.EventDetailController"
+            stylesheets="@../css/styles.css">
+    <top>
+        <HBox spacing="12" alignment="CENTER_LEFT" styleClass="toolbar">
+            <Button text="← Volver" onAction="#handleVolver" styleClass="btn-ghost"/>
+            <Label fx:id="lblNombre" styleClass="label-title" style="-fx-font-size: 20;"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Label fx:id="lblInfo" styleClass="label-subtitle"/>
+        </HBox>
+    </top>
+    <center>
+        <ScrollPane fitToWidth="true" style="-fx-background-color: transparent;">
+            <VBox spacing="16" style="-fx-padding: 20;">
+                <!-- Info + Purchase Row -->
+                <HBox spacing="16">
+                    <!-- Left: Event Info -->
+                    <VBox spacing="10" styleClass="card" HBox.hgrow="ALWAYS">
+                        <padding><Insets top="20" bottom="20" left="20" right="20"/></padding>
+                        <Label text="📖 Descripción" styleClass="label-section"/>
+                        <Label fx:id="lblDescripcion" wrapText="true" style="-fx-line-spacing: 4;"/>
+                        <Separator/>
+                        <HBox spacing="20">
+                            <VBox spacing="6">
+                                <Label text="Ubicación" styleClass="form-label"/>
+                                <Label fx:id="lblLugar" styleClass="label-muted" style="-fx-font-size: 13;"/>
+                            </VBox>
+                            <VBox spacing="6">
+                                <Label text="Fecha y Hora" styleClass="form-label"/>
+                                <Label fx:id="lblFecha" styleClass="label-muted" style="-fx-font-size: 13;"/>
+                            </VBox>
+                        </HBox>
+                        <Separator/>
+                        <Label text="Políticas" styleClass="form-label"/>
+                        <Label fx:id="lblPoliticas" wrapText="true" styleClass="label-muted"/>
+                        <Label fx:id="lblAforo" styleClass="label-muted" style="-fx-font-size: 14; -fx-text-fill: -bk-accent;"/>
+                    </VBox>
+
+                    <!-- Right: Purchase Card -->
+                    <VBox spacing="12" styleClass="purchase-card">
+                        <padding><Insets top="20" bottom="20" left="20" right="20"/></padding>
+                        <Label text="🎟️ Comprar Entradas" styleClass="label-section"/>
+                        <Separator/>
+                        <VBox spacing="4">
+                            <Label text="Selecciona Zona" styleClass="form-label"/>
+                            <ComboBox fx:id="cmbZonas" maxWidth="Infinity"/>
+                        </VBox>
+                        <VBox spacing="4">
+                            <Label text="Asientos seleccionados" styleClass="form-label"/>
+                            <Label fx:id="lblAsientosSeleccionados" text="0 asientos — haz clic en el mapa" styleClass="label-price-small"/>
+                        </VBox>
+                        <Separator/>
+                        <Label text="Servicios Adicionales" styleClass="form-label"/>
+                        <CheckBox fx:id="chkVIP" text="🎫 Acceso VIP (+$50.000)"/>
+                        <CheckBox fx:id="chkSeguro" text="🛡️ Seguro Cancelación (+$15.000)"/>
+                        <CheckBox fx:id="chkMerch" text="👕 Merchandising (+$25.000)"/>
+                        <CheckBox fx:id="chkParqueadero" text="🚗 Parqueadero (+$20.000)"/>
+                        <CheckBox fx:id="chkAccesoPref" text="⭐ Acceso Preferencial (+$35.000)"/>
+                        <Separator/>
+                        <VBox spacing="4">
+                            <Label text="Método de Pago" styleClass="form-label"/>
+                            <ComboBox fx:id="cmbMetodoPago" maxWidth="Infinity"/>
+                        </VBox>
+                        <Label fx:id="lblPrecio" styleClass="label-price"/>
+                        <Button text="🛒 COMPRAR AHORA" onAction="#handleComprar" styleClass="btn-primary" maxWidth="Infinity" prefHeight="44"/>
+                        <Label fx:id="lblMensaje" wrapText="true" styleClass="label-success"/>
+                    </VBox>
+                </HBox>
+
+                <!-- Seat Map -->
+                <VBox spacing="10" styleClass="card" alignment="CENTER">
+                    <padding><Insets top="20" bottom="20" left="20" right="20"/></padding>
+                    <Label text="📍 Mapa de Asientos" styleClass="label-section"/>
+                    
+                    <!-- Legend -->
+                    <HBox spacing="20" alignment="CENTER" style="-fx-padding: 8 0 12 0;">
+                        <HBox spacing="6" alignment="CENTER">
+                            <Region styleClass="legend-color" style="-fx-background-color: #22c55e;"/>
+                            <Label text="Disponible" styleClass="label-muted"/>
+                        </HBox>
+                        <HBox spacing="6" alignment="CENTER">
+                            <Region styleClass="legend-color" style="-fx-background-color: #6b2828;"/>
+                            <Label text="Vendido" styleClass="label-muted"/>
+                        </HBox>
+                        <HBox spacing="6" alignment="CENTER">
+                            <Region styleClass="legend-color" style="-fx-background-color: #7c5a1a;"/>
+                            <Label text="Reservado" styleClass="label-muted"/>
+                        </HBox>
+                        <HBox spacing="6" alignment="CENTER">
+                            <Region styleClass="legend-color" style="-fx-background-color: #374151;"/>
+                            <Label text="Bloqueado" styleClass="label-muted"/>
+                        </HBox>
+                        <HBox spacing="6" alignment="CENTER">
+                            <Region styleClass="legend-color" style="-fx-background-color: #3b82f6;"/>
+                            <Label text="Seleccionado" styleClass="label-muted"/>
+                        </HBox>
+                    </HBox>
+
+                    <!-- Stage -->
+                    <VBox alignment="CENTER" styleClass="tarima-container">
+                        <Label fx:id="lblTarima" text="🎭  E S C E N A R I O  🎭" styleClass="tarima-label"/>
+                    </VBox>
+
+                    <!-- Seat Grid -->
+                    <ScrollPane fitToWidth="true" fitToHeight="true" style="-fx-background-color: transparent;" maxHeight="500">
+                        <VBox fx:id="seatMapContainer" alignment="CENTER" spacing="4" style="-fx-padding: 16 10;"/>
+                    </ScrollPane>
+                </VBox>
+            </VBox>
+        </ScrollPane>
+    </center>
+</BorderPane>

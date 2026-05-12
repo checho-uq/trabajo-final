@@ -1,5 +1,5 @@
 @startuml
-' BookIt - Diagrama de Clases
+' TicketHub - Diagrama de Clases
 ' RF-044: Diagrama de clases con relaciones
 
 skinparam backgroundColor #FEFEFE

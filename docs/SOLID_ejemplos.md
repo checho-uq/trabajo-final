@@ -1,4 +1,4 @@
-# SOLID - Ejemplos en BookIt (RF-047)
+# SOLID - Ejemplos en TicketHub (RF-047)
 
 ## SRP - Single Responsibility Principle
 

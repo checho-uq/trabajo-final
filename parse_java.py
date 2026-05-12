@@ -1,7 +1,7 @@
 import os
 import re
 
-model_dir = "src/main/java/com/logistica/model"
+model_dir = "src/main/java/com/tickethub/model"
 java_files = []
 for root, dirs, files in os.walk(model_dir):
     for f in files:

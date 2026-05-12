@@ -1,0 +1,381 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.chart.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<BorderPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.tickethub.viewController.AdminDashboardController"
+            stylesheets="@../css/styles.css">
+    <top>
+        <HBox spacing="12" alignment="CENTER_LEFT" styleClass="toolbar">
+            <Label text="⚙️ TicketHub Admin" styleClass="label-title" style="-fx-font-size: 20;"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Button text="Reporte Ejecutivo" onAction="#generarReporteEjecutivo" styleClass="btn-success"/>
+            <Button text="Reporte PDF" onAction="#generarPDF" styleClass="btn-warn"/>
+            <Button text="Reporte CSV" onAction="#generarCSV" styleClass="btn-warn"/>
+            <Button text="Cerrar Sesión" onAction="#logout" styleClass="btn-ghost"/>
+        </HBox>
+    </top>
+    <center>
+        <TabPane tabClosingPolicy="UNAVAILABLE">
+            <!-- ==================== TAB: EVENTOS ==================== -->
+            <Tab text="📅 Eventos">
+                <ScrollPane fitToWidth="true" style="-fx-background-color: transparent;">
+                    <VBox spacing="16" style="-fx-padding: 16;">
+                    <!-- Resumen cards -->
+                    <HBox spacing="14">
+                        <VBox styleClass="metric-card" prefWidth="150">
+                            <Label text="Total Eventos" styleClass="label-muted"/>
+                            <Label fx:id="lblTotalEventosCount" styleClass="label-card-value" style="-fx-text-fill: #3b82f6;"/>
+                        </VBox>
+                        <VBox styleClass="metric-card" prefWidth="150">
+                            <Label text="Publicados" styleClass="label-muted"/>
+                            <Label fx:id="lblPublicadosCount" styleClass="label-card-value" style="-fx-text-fill: #10b981;"/>
+                        </VBox>
+                        <VBox styleClass="metric-card" prefWidth="150">
+                            <Label text="Borradores" styleClass="label-muted"/>
+                            <Label fx:id="lblBorradoresCount" styleClass="label-card-value" style="-fx-text-fill: #f59e0b;"/>
+                        </VBox>
+                        <VBox styleClass="metric-card" prefWidth="150">
+                            <Label text="Cancelados" styleClass="label-muted"/>
+                            <Label fx:id="lblCanceladosCount" styleClass="label-card-value" style="-fx-text-fill: #ef4444;"/>
+                        </VBox>
+                    </HBox>
+                    <Separator/>
+                    <!-- Formulario de evento -->
+                    <VBox styleClass="form-group" spacing="12">
+                        <Label text="➕ Crear / Editar Evento" styleClass="form-group-title"/>
+                        <HBox spacing="10" alignment="CENTER_LEFT">
+                            <VBox spacing="4" HBox.hgrow="ALWAYS">
+                                <Label text="Nombre del evento *" styleClass="form-label"/>
+                                <TextField fx:id="txtEvNombre" promptText="Ej: Concierto de Rock, Feria Gastronómica..."/>
+                            </VBox>
+                            <VBox spacing="4">
+                                <Label text="Categoría" styleClass="form-label"/>
+                                <ComboBox fx:id="cmbEvCategoria" promptText="Seleccionar..." prefWidth="150" editable="true"/>
+                            </VBox>
+                            <VBox spacing="4">
+                                <Label text="Ciudad" styleClass="form-label"/>
+                                <TextField fx:id="txtEvCiudad" promptText="Ej: Bogotá, Medellín" prefWidth="130"/>
+                            </VBox>
+                            <VBox spacing="4">
+                                <Label text="Fecha del evento *" styleClass="form-label"/>
+                                <DatePicker fx:id="dpEvFecha" prefWidth="140" promptText="Seleccionar fecha"/>
+                            </VBox>
+                        </HBox>
+                        <HBox spacing="10" alignment="CENTER_LEFT">
+                            <VBox spacing="4" HBox.hgrow="ALWAYS">
+                                <Label text="Descripción" styleClass="form-label"/>
+                                <TextField fx:id="txtEvDescripcion" promptText="Describe el evento para los asistentes..."/>
+                            </VBox>
+                            <VBox spacing="4">
+                                <Label text="Recinto *" styleClass="form-label"/>
+                                <HBox spacing="4">
+                                    <ComboBox fx:id="cmbEvRecinto" promptText="Seleccionar recinto" prefWidth="200"/>
+                                    <Button text="➕" onAction="#abrirGestionRecintos" styleClass="btn-small" prefWidth="32"/>
+                                </HBox>
+                            </VBox>
+                        </HBox>
+                        <HBox spacing="10" alignment="CENTER_LEFT">
+                            <VBox spacing="4" HBox.hgrow="ALWAYS">
+                                <Label text="Política de cancelación" styleClass="form-label"/>
+                                <TextField fx:id="txtEvPolCancel" promptText="Ej: Cancelación gratis hasta 48h antes"/>
+                            </VBox>
+                            <VBox spacing="4" HBox.hgrow="ALWAYS">
+                                <Label text="Política de reembolso" styleClass="form-label"/>
+                                <TextField fx:id="txtEvPolReembolso" promptText="Ej: Reembolso del 80% del valor"/>
+                            </VBox>
+                        </HBox>
+                        <HBox spacing="10" alignment="CENTER_LEFT" styleClass="form-actions">
+                            <Button text="💾 Guardar Evento" onAction="#crearEvento" styleClass="btn-primary"/>
+                            <Button text="✏️ Actualizar" onAction="#actualizarEvento" styleClass="btn-warn"/>
+                            <Region HBox.hgrow="ALWAYS"/>
+                            <Separator orientation="VERTICAL" prefHeight="30"/>
+                            <Button text="✅ Publicar" onAction="#publicarEvento" styleClass="btn-success"/>
+                            <Button text="⏸️ Pausar" onAction="#pausarEvento" styleClass="btn-warn"/>
+                            <Button text="❌ Cancelar" onAction="#cancelarEvento" styleClass="btn-danger"/>
+                            <Button text="🗑️ Eliminar" onAction="#eliminarEvento" styleClass="btn-danger"/>
+                        </HBox>
+                    </VBox>
+                    <Label text="📋 Listado de Eventos" styleClass="label-section"/>
+                    <TableView fx:id="tblEventos" VBox.vgrow="ALWAYS">
+                        <columns>
+                            <TableColumn fx:id="colEvId" text="ID" prefWidth="60"/>
+                            <TableColumn fx:id="colEvNombre" text="Nombre" prefWidth="200"/>
+                            <TableColumn fx:id="colEvCategoria" text="Categoría" prefWidth="100"/>
+                            <TableColumn fx:id="colEvCiudad" text="Ciudad" prefWidth="100"/>
+                            <TableColumn fx:id="colEvFecha" text="Fecha" prefWidth="120"/>
+                            <TableColumn fx:id="colEvEstado" text="Estado" prefWidth="100"/>
+                            <TableColumn fx:id="colEvRecinto" text="Recinto" prefWidth="150"/>
+                        </columns>
+                    </TableView>
+                </VBox>
+                    </ScrollPane>
+            </Tab>
+
+            <!-- ==================== TAB: USUARIOS ==================== -->
+            <Tab text="👥 Usuarios">
+                <ScrollPane fitToWidth="true" style="-fx-background-color: transparent;">
+                    <VBox spacing="16" style="-fx-padding: 16;">
+
+                <VBox styleClass="form-group" spacing="12">
+                    <Label text="➕ Crear / Editar Usuario" styleClass="form-group-title"/>
+                    <HBox spacing="10" alignment="CENTER_LEFT">
+                        <VBox spacing="4" HBox.hgrow="ALWAYS">
+                            <Label text="Nombre completo *" styleClass="form-label"/>
+                            <TextField fx:id="txtUsNombre" promptText="Ej: Juan Pérez"/>
+                        </VBox>
+                        <VBox spacing="4">
+                            <Label text="Correo electrónico *" styleClass="form-label"/>
+                            <TextField fx:id="txtUsEmail" promptText="correo@ejemplo.com" prefWidth="220"/>
+                        </VBox>
+                        <VBox spacing="4">
+                            <Label text="Teléfono" styleClass="form-label"/>
+                            <TextField fx:id="txtUsTel" promptText="300 123 4567" prefWidth="130"/>
+                        </VBox>
+                        <VBox spacing="4">
+                            <Label text="Contraseña" styleClass="form-label"/>
+                            <PasswordField fx:id="txtUsPassword" promptText="••••••" prefWidth="130"/>
+                        </VBox>
+                        <VBox spacing="4" alignment="CENTER">
+                            <Label text="Rol" styleClass="form-label"/>
+                            <CheckBox fx:id="chkUsAdmin" text="Administrador"/>
+                        </VBox>
+                    </HBox>
+                    <HBox spacing="10">
+                        <Button text="💾 Guardar Usuario" onAction="#crearUsuario" styleClass="btn-primary"/>
+                        <Button text="✏️ Actualizar" onAction="#actualizarUsuario" styleClass="btn-warn"/>
+                        <Button text="🗑️ Eliminar" onAction="#eliminarUsuario" styleClass="btn-danger"/>
+                    </HBox>
+                </VBox>
+                <Label text="📋 Listado de Usuarios" styleClass="label-section"/>
+                <TableView fx:id="tblUsuarios" VBox.vgrow="ALWAYS">
+                    <columns>
+                        <TableColumn fx:id="colUsId" text="ID" prefWidth="60"/>
+                        <TableColumn fx:id="colUsNombre" text="Nombre" prefWidth="200"/>
+                        <TableColumn fx:id="colUsEmail" text="Email" prefWidth="220"/>
+                        <TableColumn fx:id="colUsTel" text="Teléfono" prefWidth="120"/>
+                        <TableColumn fx:id="colUsRol" text="Rol" prefWidth="80"/>
+                        <TableColumn fx:id="colUsCompras" text="Compras" prefWidth="80"/>
+                    </columns>
+                </TableView>
+            </VBox>
+                </ScrollPane>
+            </Tab>
+
+            <!-- ==================== TAB: COMPRAS ==================== -->
+            <Tab text="🛒 Compras">
+                <ScrollPane fitToWidth="true" style="-fx-background-color: transparent;">
+                    <VBox spacing="16" style="-fx-padding: 16;">
+                    <HBox spacing="10" styleClass="form-group">
+                        <Label text="⚡ Acciones rápidas" styleClass="form-group-title" minWidth="120"/>
+                        <Button text="❌ Cancelar Compra" onAction="#cancelarCompraAdmin" styleClass="btn-danger"/>
+                        <Button text="💰 Reembolsar" onAction="#registrarReembolso" styleClass="btn-warn"/>
+                        <Button text="⚠️ Reportar Incidencia" onAction="#reportarIncidenciaCompra" styleClass="btn-warn"/>
+                        <Button text="✅ Resolver Incidencia" onAction="#resolverIncidenciaCompra" styleClass="btn-success"/>
+                        <Button text="🔄 Reasignar Asientos" onAction="#reasignarAsientosCompra" styleClass="btn-primary"/>
+                        <Label text="Selecciona una compra en la tabla" styleClass="label-muted" HBox.hgrow="ALWAYS"/>
+                    </HBox>
+                    <Label text="📋 Historial de Compras" styleClass="label-section"/>
+                    <TableView fx:id="tblCompras" VBox.vgrow="ALWAYS">
+                        <columns>
+                            <TableColumn fx:id="colCmpId" text="ID Compra" prefWidth="140"/>
+                            <TableColumn fx:id="colCmpCliente" text="Cliente" prefWidth="160"/>
+                            <TableColumn fx:id="colCmpEvento" text="Evento" prefWidth="180"/>
+                            <TableColumn fx:id="colCmpTotal" text="Total" prefWidth="100"/>
+                            <TableColumn fx:id="colCmpEstado" text="Estado" prefWidth="100"/>
+                            <TableColumn fx:id="colCmpFecha" text="Fecha" prefWidth="120"/>
+                        </columns>
+                    </TableView>
+                </VBox>
+                </ScrollPane>
+            </Tab>
+
+            <!-- ==================== TAB: RECINTOS + ZONAS + ASIENTOS ==================== -->
+            <Tab text="🏟️ Recintos y Zonas">
+                <ScrollPane fitToWidth="true" style="-fx-background-color: transparent;">
+                    <VBox spacing="16" style="-fx-padding: 16;">
+                    <!-- RECINTOS -->
+                    <VBox styleClass="form-group" spacing="12">
+                        <Label text="🏟️ Gestión de Recintos" styleClass="form-group-title"/>
+                        <HBox spacing="10" alignment="CENTER_LEFT">
+                            <VBox spacing="4" HBox.hgrow="ALWAYS">
+                                <Label text="Nombre del recinto *" styleClass="form-label"/>
+                                <TextField fx:id="txtRecNombre" promptText="Ej: Estadio El Campín, Teatro Colón"/>
+                            </VBox>
+                            <VBox spacing="4" HBox.hgrow="ALWAYS">
+                                <Label text="Dirección" styleClass="form-label"/>
+                                <TextField fx:id="txtRecDir" promptText="Dirección completa del recinto"/>
+                            </VBox>
+                            <VBox spacing="4">
+                                <Label text="Ciudad" styleClass="form-label"/>
+                                <TextField fx:id="txtRecCiudad" promptText="Ej: Bogotá" prefWidth="150"/>
+                            </VBox>
+                        </HBox>
+                        <HBox spacing="10">
+                            <Button text="💾 Guardar Recinto" onAction="#crearRecintoAction" styleClass="btn-primary"/>
+                            <Button text="✏️ Actualizar" onAction="#actualizarRecintoAction" styleClass="btn-warn"/>
+                            <Button text="🗑️ Eliminar" onAction="#eliminarRecintoAction" styleClass="btn-danger"/>
+                        </HBox>
+                    </VBox>
+                    <TableView fx:id="tblRecintos" VBox.vgrow="ALWAYS" prefHeight="120">
+                        <columns>
+                            <TableColumn fx:id="colRecId" text="ID" prefWidth="60"/>
+                            <TableColumn fx:id="colRecNombre" text="Nombre" prefWidth="220"/>
+                            <TableColumn fx:id="colRecCiudad" text="Ciudad" prefWidth="120"/>
+                            <TableColumn fx:id="colRecDir" text="Dirección" prefWidth="220"/>
+                            <TableColumn fx:id="colRecZonas" text="Zonas" prefWidth="80"/>
+                        </columns>
+                    </TableView>
+
+                    <Separator/>
+
+                    <!-- ZONAS -->
+                    <VBox styleClass="form-group" spacing="12">
+                        <Label text="🎯 Gestión de Zonas" styleClass="form-group-title"/>
+                        <HBox spacing="10" alignment="CENTER_LEFT">
+                            <VBox spacing="4">
+                                <Label text="Recinto *" styleClass="form-label"/>
+                                <ComboBox fx:id="cmbZonaRecinto" promptText="Seleccionar recinto" prefWidth="220"/>
+                            </VBox>
+                            <VBox spacing="4" HBox.hgrow="ALWAYS">
+                                <Label text="Nombre de la zona *" styleClass="form-label"/>
+                                <ComboBox fx:id="cmbZonaNombre" promptText="Ej: VIP, Preferencial, General..." prefWidth="180" editable="true"/>
+                            </VBox>
+                            <VBox spacing="4">
+                                <Label text="Capacidad *" styleClass="form-label"/>
+                                <TextField fx:id="txtZonaCapacidad" promptText="Nº asientos" prefWidth="110"/>
+                            </VBox>
+                            <VBox spacing="4">
+                                <Label text="Precio base ($) *" styleClass="form-label"/>
+                                <TextField fx:id="txtZonaPrecio" promptText="Ej: 80000" prefWidth="120"/>
+                            </VBox>
+                            <VBox spacing="4">
+                                <Label text="Estrategia de precio" styleClass="form-label"/>
+                                <ComboBox fx:id="cmbZonaEstrategia" prefWidth="140"/>
+                            </VBox>
+                        </HBox>
+                        <HBox spacing="10">
+                            <Button text="💾 Guardar Zona" onAction="#crearZonaAction" styleClass="btn-primary"/>
+                            <Button text="✏️ Actualizar" onAction="#actualizarZonaAction" styleClass="btn-warn"/>
+                            <Button text="🗑️ Eliminar" onAction="#eliminarZonaAction" styleClass="btn-danger"/>
+                        </HBox>
+                    </VBox>
+                    <Label text="📋 Zonas del sistema" styleClass="label-section"/>
+                    <TableView fx:id="tblZonas" VBox.vgrow="ALWAYS" prefHeight="120">
+                        <columns>
+                            <TableColumn fx:id="colZonaId" text="ID" prefWidth="60"/>
+                            <TableColumn fx:id="colZonaNombre" text="Nombre" prefWidth="140"/>
+                            <TableColumn fx:id="colZonaCapacidad" text="Capacidad" prefWidth="90"/>
+                            <TableColumn fx:id="colZonaPrecio" text="Precio Base" prefWidth="100"/>
+                            <TableColumn fx:id="colZonaRecinto" text="Recinto" prefWidth="160"/>
+                            <TableColumn fx:id="colZonaAsientos" text="Asientos" prefWidth="80"/>
+                        </columns>
+                    </TableView>
+
+                    <Separator/>
+
+                    <!-- ASIENTOS -->
+                    <VBox styleClass="form-group" spacing="12">
+                        <Label text="🪑 Gestión de Asientos" styleClass="form-group-title"/>
+                        <HBox spacing="10" alignment="CENTER_LEFT">
+                            <VBox spacing="4">
+                                <Label text="Recinto" styleClass="form-label"/>
+                                <ComboBox fx:id="cmbAsientoRecinto" promptText="Seleccionar recinto" prefWidth="220" onAction="#cargarZonasAsiento"/>
+                            </VBox>
+                            <VBox spacing="4">
+                                <Label text="Zona" styleClass="form-label"/>
+                                <ComboBox fx:id="cmbAsientoZona" promptText="Seleccionar zona" prefWidth="220" onAction="#cargarAsientosAdmin"/>
+                            </VBox>
+                            <Region HBox.hgrow="ALWAYS"/>
+                            <Button text="✅ Habilitar" onAction="#habilitarAsiento" styleClass="btn-success"/>
+                            <Button text="🚫 Bloquear" onAction="#bloquearAsiento" styleClass="btn-danger"/>
+                            <Button text="🔓 Liberar" onAction="#liberarAsiento" styleClass="btn-warn"/>
+                        </HBox>
+                    </VBox>
+                    <Label text="📋 Asientos de la zona" styleClass="label-section"/>
+                    <TableView fx:id="tblAsientos" VBox.vgrow="ALWAYS">
+                        <columns>
+                            <TableColumn fx:id="colAsId" text="ID" prefWidth="120"/>
+                            <TableColumn fx:id="colAsFila" text="Fila" prefWidth="80"/>
+                            <TableColumn fx:id="colAsNumero" text="Número" prefWidth="80"/>
+                            <TableColumn fx:id="colAsEstado" text="Estado" prefWidth="120"/>
+                        </columns>
+                    </TableView>
+                </VBox>
+                </ScrollPane>
+            </Tab>
+
+            <!-- ==================== TAB: MÉTRICAS ==================== -->
+            <Tab text="📊 Métricas">
+                <ScrollPane fitToWidth="true" style="-fx-background-color: transparent;">
+                    <VBox spacing="16" style="-fx-padding: 16;">
+                        <HBox spacing="14">
+                            <VBox styleClass="metric-card">
+                                <Label text="Total Compras" styleClass="label-muted"/>
+                                <Label fx:id="lblTotalCompras" styleClass="label-card-value" style="-fx-text-fill: #3b82f6;"/>
+                            </VBox>
+                            <VBox styleClass="metric-card">
+                                <Label text="Total Ingresos" styleClass="label-muted"/>
+                                <Label fx:id="lblTotalIngresos" styleClass="label-card-value" style="-fx-text-fill: #10b981;"/>
+                            </VBox>
+                            <VBox styleClass="metric-card">
+                                <Label text="Tasa Cancelación" styleClass="label-muted"/>
+                                <Label fx:id="lblTasaCancelacion" styleClass="label-card-value" style="-fx-text-fill: #ef4444;"/>
+                            </VBox>
+                            <VBox styleClass="metric-card">
+                                <Label text="Total Eventos" styleClass="label-muted"/>
+                                <Label fx:id="lblTotalEventos" styleClass="label-card-value" style="-fx-text-fill: #f59e0b;"/>
+                            </VBox>
+                            <VBox styleClass="metric-card">
+                                <Label text="Servicios Adicionales" styleClass="label-muted"/>
+                                <Label fx:id="lblTotalServicios" styleClass="label-card-value" style="-fx-text-fill: #8b5cf6;"/>
+                            </VBox>
+                        </HBox>
+
+                        <VBox styleClass="form-group" spacing="10">
+                            <Label text="📈 Gráficas Interactivas" styleClass="form-group-title"/>
+                            <HBox spacing="8" alignment="CENTER_LEFT">
+                                <Label text="Evento:" styleClass="form-label"/>
+                                <ComboBox fx:id="cmbMetricaEvento" promptText="Seleccionar evento" prefWidth="300" onAction="#cambiarEventoMetrica"/>
+                            </HBox>
+                            <FlowPane hgap="8" vgap="6">
+                                <Button text="📊 Ventas por Evento" onAction="#mostrarGraficaVentas" styleClass="btn-primary"/>
+                                <Button text="🥧 Ocupación por Zona" onAction="#mostrarGraficaOcupacion" styleClass="btn-success"/>
+                                <Button text="💰 Servicios" onAction="#mostrarGraficaServicios" styleClass="btn-warn"/>
+                                <Button text="🏆 Top Eventos" onAction="#mostrarGraficaTop" styleClass="btn-primary"/>
+                                <Button text="❌ Cancelación" onAction="#mostrarGraficaCancelacion" styleClass="btn-danger"/>
+                                <Button text="📈 Línea Ventas" onAction="#mostrarGraficaLinea" styleClass="btn-primary"/>
+                            </FlowPane>
+                            <StackPane fx:id="panelGraficas" prefHeight="320" style="-fx-background-color: transparent; -fx-border-color: -bk-border; -fx-border-radius: 10; -fx-background-radius: 10; -fx-padding: 10;">
+                                <BarChart fx:id="chartVentas" prefWidth="800" prefHeight="300" legendVisible="false">
+                                    <xAxis><CategoryAxis label="Evento"/></xAxis>
+                                    <yAxis><NumberAxis label="Ventas ($)"/></yAxis>
+                                </BarChart>
+                            </StackPane>
+                        </VBox>
+
+                        <HBox spacing="16" VBox.vgrow="SOMETIMES">
+                            <VBox spacing="4" prefWidth="350">
+                                <Label text="🏆 Ranking Top Eventos" styleClass="label-section"/>
+                                <ListView fx:id="lstTopEventos" prefHeight="130"/>
+                            </VBox>
+                            <VBox spacing="4" HBox.hgrow="ALWAYS">
+                                <Label text="📋 Incidencias" styleClass="label-section"/>
+                                <HBox spacing="6">
+                                    <DatePicker fx:id="dpIncidenciaInicio" promptText="Desde" prefWidth="130"/>
+                                    <DatePicker fx:id="dpIncidenciaFin" promptText="Hasta" prefWidth="130"/>
+                                    <TextField fx:id="txtFiltroTipoIncidencia" promptText="Tipo" prefWidth="130"/>
+                                    <Button text="Filtrar" onAction="#filtrarIncidencias" styleClass="btn-primary"/>
+                                    <Button text="Limpiar" onAction="#limpiarFiltroIncidencias" styleClass="btn-warn"/>
+                                </HBox>
+                                <ListView fx:id="lstIncidencias" prefHeight="130"/>
+                            </VBox>
+                        </HBox>
+                    </VBox>
+                </ScrollPane>
+            </Tab>
+        </TabPane>
+    </center>
+</BorderPane>
